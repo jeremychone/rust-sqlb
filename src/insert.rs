@@ -1,10 +1,10 @@
-use crate::{sql_comma_names, sql_comma_params, Field, SqlBuilder, Val};
+use crate::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings, Field, SqlBuilder, Val};
 
 pub fn insert(table: &str) -> SqlInsertBuilder {
 	SqlInsertBuilder {
 		table: table.to_string(),
 		data: None,
-		returning: None,
+		returnings: None,
 	}
 }
 
@@ -12,7 +12,7 @@ pub fn insert(table: &str) -> SqlInsertBuilder {
 pub struct SqlInsertBuilder {
 	table: String,
 	data: Option<Vec<Field>>,
-	returning: Option<Vec<String>>,
+	returnings: Option<Vec<String>>,
 }
 
 impl SqlInsertBuilder {
@@ -22,7 +22,7 @@ impl SqlInsertBuilder {
 	}
 
 	pub fn returning(mut self, names: &[&str]) -> Self {
-		self.returning = Some(names.into_iter().map(|s| s.to_string()).collect());
+		self.returnings = into_returnings(self.returnings, names);
 		self
 	}
 }
@@ -43,10 +43,9 @@ impl SqlBuilder for SqlInsertBuilder {
 			sql.push_str(&format!("VALUES ({}) ", sql_comma_params(fields)));
 		}
 
-		// SQL: RETURNING r1, r2, ...
-		if let Some(returning) = &self.returning {
-			let names = returning.join(", ");
-			sql.push_str(&format!("returning {} ", names));
+		// SQL: RETURNING "r1", "r2", ...
+		if let Some(returnings) = &self.returnings {
+			sql.push_str(&format!("RETURNING {} ", sql_returnings(returnings)));
 		}
 
 		sql

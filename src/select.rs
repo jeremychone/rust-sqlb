@@ -1,4 +1,5 @@
-use crate::{x_name, OrderItem, SqlBuilder, Val, WhereItem};
+use super::into_and_wheres;
+use crate::{sql_where_items, x_name, OrderItem, SqlBuilder, Val, WhereItem};
 
 pub fn select(table: &str) -> SqlSelectBuilder {
 	SqlSelectBuilder {
@@ -24,25 +25,7 @@ impl SqlSelectBuilder {
 	}
 
 	pub fn and_where(mut self, wheres: &[(&str, &str, Val)]) -> Self {
-		// Note: to_vec so that when it into_iter we do not get the reference of the tuple items
-		let wheres = wheres.to_vec();
-		let wheres: Vec<WhereItem> = wheres
-			.into_iter()
-			.map(|(name, op, val)| WhereItem {
-				name: name.to_owned(),
-				op: op.to_owned(),
-				val,
-			})
-			.collect();
-
-		self.and_wheres = match self.and_wheres {
-			Some(mut and_wheres) => {
-				and_wheres.extend(wheres);
-				Some(and_wheres)
-			}
-			None => Some(wheres),
-		};
-
+		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
 		self
 	}
 
@@ -79,12 +62,7 @@ impl SqlBuilder for SqlSelectBuilder {
 
 		// SQL: WHERE w1 < $1, ...
 		if let Some(and_wheres) = &self.and_wheres {
-			let sql_where = and_wheres
-				.iter()
-				.enumerate()
-				.map(|(idx, WhereItem { name, op, .. })| format!("{} {} ${}", x_name(name), op, idx + 1))
-				.collect::<Vec<String>>()
-				.join(", ");
+			let sql_where = sql_where_items(&and_wheres, 1);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		}
 

@@ -70,7 +70,9 @@ docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:1
 # In terminal 2 - launch psql on the postges instance above
 docker exec -it -u postgres pg psql
 
-# In terminal 3 - run the first rudementary tests
-cargo test
+# In terminal 3 - run the first rudementary tests (single thread mode to avoid db inconsistencies)
+cargo test --tests -- --test-threads=1
+# or watch with unique test file
+cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
 
 ```
