@@ -72,7 +72,9 @@ docker exec -it -u postgres pg psql
 
 # In terminal 3 - run the first rudementary tests (single thread mode to avoid db inconsistencies)
 cargo test --tests -- --test-threads=1
-# or watch with unique test file
+# or watch test_sb_insert
 cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
+# or watch test_sb_update
+cargo watch -q -c -x 'test --test test_sb_update -- --test-threads=1'
 
 ```

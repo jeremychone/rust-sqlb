@@ -59,3 +59,31 @@ async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 
 	Ok(())
 }
+
+#[tokio::test]
+async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
+	let db_pool = init_db().await?;
+
+	// fixtures
+	let test_title_1 = "test - title 01";
+	let test_title_2 = "test - title 02";
+	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
+	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+
+	// do update
+	let test_title_new = "test - new title";
+	let fields = vec![("title", test_title_new).into()];
+	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1.into())]);
+	let sb = sb.returning(&["id", "title"]);
+	let (returned_todo_1_id, returned_todo_1_title) = sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
+
+	// CHECK return values
+	assert_eq!(todo_id_1, returned_todo_1_id);
+	assert_eq!(test_title_new, returned_todo_1_title);
+
+	// CHECK todo_2
+	let todo = util_fetch_todo(&db_pool, todo_id_2).await?;
+	assert_eq!(test_title_2, todo.title, "todo_1.tile");
+
+	Ok(())
+}
