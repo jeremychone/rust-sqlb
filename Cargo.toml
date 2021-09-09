@@ -1,0 +1,30 @@
+[package]
+name = "sqlb"
+version = "0.0.1"
+authors = ["Jeremy Chone <jeremy.chone@gmail.com>"]
+edition = "2018"
+include = [
+	"src/**/*",
+	"Cargo.toml",
+	"README.md",
+	"LICENCE"
+]
+homepage = "https://github.com/jeremychone/rust-sqlb"
+repository = "https://github.com/jeremychone/rust-sqlb"
+description = "Simple and expressive SQL Builder for Rust (Database Executor/Driver Independent)."
+keywords = [
+	"sql",
+	"sqlbuilder",
+	"database",
+	"orm",
+	"postgres"
+]
+categories = ["Database"]
+license = "MIT"
+
+[dependencies]
+# FIXME - sqlx needs to be moved as a feature
+sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "postgres" ] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
