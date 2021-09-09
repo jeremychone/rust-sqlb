@@ -19,7 +19,7 @@ keywords = [
 	"orm",
 	"postgres"
 ]
-categories = ["Database"]
+categories = ["database"]
 license = "MIT"
 
 [dependencies]
