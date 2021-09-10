@@ -18,17 +18,13 @@ Scope for first 0.1.x releases:
 
 ## Early API Example (just conceptual for now)
 
-Insert: 
-
 ```rust
+// INSERT - Insert a new Todo from a Partial todo
 let sb = sqlb::insert("todo").data(patch_data.fields());
 let sb = sb.returning(&["id", "title"]);
 let (_id, title) = sqlb::sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
-```        
 
-Select: 
-
-```rust
+// SELECT - Get all todos
 let sb = sqlb::select("todo").columns(&["id", "title"]).order_by("!id");
 let todos: Vec<Todo> = sqlb::sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
 assert_eq!(1, todos.len());
@@ -48,13 +44,13 @@ pub struct TodoPatch {
 }
 
 impl GetFields for TodoPatch {
-    fn fields(&self) -> Vec<Field> {
-        let mut fields = Vec::new();
-        if let Some(title) = &self.title {
-            fields.push(Field::from_string("title", title));
-        }
-        fields
-    }
+	fn fields(&self) -> Vec<Field> {
+		let mut fields = Vec::new();
+		if let Some(title) = &self.title {
+			fields.push(("title", title).into());
+		}
+		fields
+	}
 }
 ```
 
