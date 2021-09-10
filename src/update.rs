@@ -2,6 +2,17 @@ use crate::{into_and_wheres, into_returnings, sql_returnings, sql_where_items, x
 
 pub fn update(table: &str) -> SqlUpdateBuilder {
 	SqlUpdateBuilder {
+		guard_all: true,
+		table: table.to_string(),
+		data: None,
+		returnings: None,
+		and_wheres: None,
+	}
+}
+
+pub fn update_all(table: &str) -> SqlUpdateBuilder {
+	SqlUpdateBuilder {
+		guard_all: false,
 		table: table.to_string(),
 		data: None,
 		returnings: None,
@@ -11,6 +22,7 @@ pub fn update(table: &str) -> SqlUpdateBuilder {
 
 #[derive(Clone)]
 pub struct SqlUpdateBuilder {
+	guard_all: bool,
 	table: String,
 	data: Option<Vec<Field>>,
 	returnings: Option<Vec<String>>,
@@ -63,6 +75,9 @@ impl SqlBuilder for SqlUpdateBuilder {
 		if let Some(and_wheres) = &self.and_wheres {
 			let sql_where = sql_where_items(&and_wheres, idx_start);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
+		} else if self.guard_all {
+			// For now panic, will return error later
+			panic!("FATAL - Trying to call a update without any where clause. If needed, use sqlb::update_all(table_name). ")
 		}
 
 		// SQL: RETURNING "r1", "r2", ...

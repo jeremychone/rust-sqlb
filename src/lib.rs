@@ -1,12 +1,16 @@
+mod delete;
 mod insert;
 mod select;
 pub mod sqlx_exec;
 mod update;
 mod val;
 
+pub use crate::delete::delete;
+pub use crate::delete::delete_all;
 pub use crate::insert::insert;
 pub use crate::select::select;
 pub use crate::update::update;
+pub use crate::update::update_all;
 pub use crate::val::Val;
 
 // region:    Fields

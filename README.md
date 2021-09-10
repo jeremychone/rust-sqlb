@@ -76,5 +76,7 @@ cargo test --tests -- --test-threads=1
 cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
 # or watch test_sb_update
 cargo watch -q -c -x 'test --test test_sb_update -- --test-threads=1'
+# or watch test_sb_delete
+cargo watch -q -c -x 'test --test test_sb_delete -- --test-threads=1'
 
 ```

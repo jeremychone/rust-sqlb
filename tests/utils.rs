@@ -40,7 +40,7 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 #[allow(unused)] // Note: Since not used in all test/ files, remove warning
 pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>, Box<dyn Error>> {
 	let sb = sqlb::select("todo").columns(&["id", "title"]).order_by("!id");
-	let todos: Vec<Todo> = sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
+	let todos = sqlx_exec::fetch_as_all::<Todo, _>(&db_pool, &sb).await?;
 	Ok(todos)
 }
 

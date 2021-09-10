@@ -1,13 +1,28 @@
 mod utils;
 
-use sqlb::sqlx_exec;
+use sqlb::{sqlx_exec, SqlBuilder};
 use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, util_insert_todo};
 
 use crate::utils::util_fetch_todo;
 
+#[test]
+#[should_panic]
+fn sb_update_all_sql_panic() {
+	let sb = sqlb::update("todo");
+	sb.sql();
+	// should panic
+}
+
+#[test]
+fn sb_update_all_sql_ok() {
+	let sb = sqlb::update_all("todo");
+	sb.sql();
+	// should pass
+}
+
 #[tokio::test]
-async fn sb_update_exec_no_where() -> Result<(), Box<dyn Error>> {
+async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// fixtures
@@ -19,7 +34,7 @@ async fn sb_update_exec_no_where() -> Result<(), Box<dyn Error>> {
 	// do update
 	let test_title_for_all = "test - new title for all";
 	let fields = vec![("title", test_title_for_all).into()];
-	let sb = sqlb::update("todo").data(fields);
+	let sb = sqlb::update_all("todo").data(fields);
 	let row_affected = sqlx_exec::exec(&db_pool, &sb).await?;
 	assert_eq!(2, row_affected, "row_affected");
 
