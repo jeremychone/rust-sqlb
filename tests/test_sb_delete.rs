@@ -32,7 +32,7 @@ async fn sb_delete_exec() -> Result<(), Box<dyn Error>> {
 	let _ = util_insert_todo(test_title_2, &db_pool).await?;
 
 	// do delete
-	let sb = sqlb::delete("todo").and_where(&[("id", "=", todo_id_1.into())]);
+	let sb = sqlb::delete("todo").and_where(&[("id", "=", todo_id_1)]);
 	let row_affected = sqlx_exec::exec(&db_pool, &sb).await?;
 	assert_eq!(1, row_affected, "row_affected");
 
@@ -55,7 +55,7 @@ async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
 	let _ = util_insert_todo(test_title_2, &db_pool).await?;
 
 	// do delete
-	let sb = sqlb::delete("todo").and_where(&[("id", "=", todo_id_1.into())]);
+	let sb = sqlb::delete("todo").and_where(&[("id", "=", todo_id_1)]);
 	let sb = sb.returning(&["id", "title"]);
 	let (deleted_todo_1_id, deleted_todo_1_title) = sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
 
@@ -82,7 +82,7 @@ async fn sb_delete_return_many() -> Result<(), Box<dyn Error>> {
 	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
 
 	// do delete
-	let sb = sqlb::delete("todo").and_where(&[("id", ">", 0.into())]);
+	let sb = sqlb::delete("todo").and_where(&[("id", ">", 0)]);
 	let sb = sb.returning(&["id", "title"]);
 	let deleted: Vec<Todo> = sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
 

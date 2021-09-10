@@ -1,4 +1,4 @@
-use crate::{into_and_wheres, into_returnings, sql_returnings, sql_where_items, SqlBuilder, Val, WhereItem};
+use crate::{into_and_wheres, into_returnings, sql_returnings, sql_where_items, SqlBuilder, Val, ValType, WhereItem};
 
 pub fn delete(table: &str) -> SqlDeleteBuilder {
 	SqlDeleteBuilder {
@@ -27,7 +27,7 @@ pub struct SqlDeleteBuilder {
 }
 
 impl SqlDeleteBuilder {
-	pub fn and_where(mut self, wheres: &[(&str, &str, Val)]) -> Self {
+	pub fn and_where(mut self, wheres: &[(&str, &str, impl ValType + Clone)]) -> Self {
 		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
 		self
 	}

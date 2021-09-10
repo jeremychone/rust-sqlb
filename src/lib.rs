@@ -12,8 +12,9 @@ pub use crate::select::select;
 pub use crate::update::update;
 pub use crate::update::update_all;
 pub use crate::val::Val;
+pub use crate::val::ValType;
 
-// region:    Fields
+// region:    Field
 #[derive(Clone)]
 pub struct Field(pub String, pub Val);
 
@@ -21,17 +22,12 @@ pub trait GetFields {
 	fn fields(&self) -> Vec<Field>;
 }
 
-impl From<(&str, &str)> for Field {
-	fn from(v: (&str, &str)) -> Self {
-		Field(v.0.to_owned(), v.1.into())
+impl<T: ValType> From<(&str, T)> for Field {
+	fn from((name, value): (&str, T)) -> Self {
+		Field(name.to_owned(), value.to_val())
 	}
 }
-impl From<(&str, &String)> for Field {
-	fn from(v: (&str, &String)) -> Self {
-		Field(v.0.to_owned(), v.1.into())
-	}
-}
-// endregion: Fields
+// endregion: Field
 
 // region:    Common Types
 #[derive(Clone)]
@@ -39,6 +35,16 @@ struct WhereItem {
 	name: String,
 	op: String,
 	val: Val,
+}
+
+impl<T: ValType> From<(&str, &str, T)> for WhereItem {
+	fn from((name, op, value): (&str, &str, T)) -> Self {
+		WhereItem {
+			name: name.to_owned(),
+			op: op.to_owned(),
+			val: value.to_val(),
+		}
+	}
 }
 
 #[derive(Clone)]
@@ -84,7 +90,7 @@ pub trait SqlBuilder {
 // endregion: Common Types
 
 // region:    property into helpers
-fn into_and_wheres(and_wheres: Option<Vec<WhereItem>>, wheres: &[(&str, &str, Val)]) -> Option<Vec<WhereItem>> {
+fn into_and_wheres(and_wheres: Option<Vec<WhereItem>>, wheres: &[(&str, &str, impl ValType + Clone)]) -> Option<Vec<WhereItem>> {
 	// Note: to_vec so that when it into_iter we do not get the reference of the tuple items
 	let wheres = wheres.to_vec();
 	let wheres: Vec<WhereItem> = wheres
@@ -92,7 +98,7 @@ fn into_and_wheres(and_wheres: Option<Vec<WhereItem>>, wheres: &[(&str, &str, Va
 		.map(|(name, op, val)| WhereItem {
 			name: name.to_owned(),
 			op: op.to_owned(),
-			val,
+			val: val.to_val(),
 		})
 		.collect();
 
@@ -144,3 +150,35 @@ fn sql_returnings(returnings: &[String]) -> String {
 	returnings.iter().map(|r| x_name(&r)).collect::<Vec<String>>().join(", ")
 }
 // endregion: Builder Utils
+
+#[cfg(test)]
+mod tests {
+	use crate::Field;
+
+	#[test]
+	fn field_from_str() {
+		let field = Field::from(("name1", "v2"));
+		assert_eq!("name1", field.0);
+
+		let field: Field = ("name1", "v2").into();
+		assert_eq!("name1", field.0);
+	}
+
+	#[test]
+	fn field_from_string() {
+		let field = Field::from(("name1", "v2"));
+		assert_eq!("name1", field.0);
+
+		let field: Field = ("name1", &"v2".to_string()).into();
+		assert_eq!("name1", field.0);
+	}
+
+	#[test]
+	fn field_from_i64() {
+		let field = Field::from(("name1", &"v2".to_string()));
+		assert_eq!("name1", field.0);
+
+		let field: Field = ("name1", &"v2".to_string()).into();
+		assert_eq!("name1", field.0);
+	}
+}

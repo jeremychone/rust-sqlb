@@ -46,7 +46,7 @@ pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>,
 
 #[allow(unused)] // Note: Since not used in all test/ files, remove warning
 pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo, Box<dyn Error>> {
-	let sb = sqlb::select("todo").columns(&["id", "title"]).and_where(&[("id", "=", id.into())]);
+	let sb = sqlb::select("todo").columns(&["id", "title"]).and_where(&[("id", "=", id)]);
 	let todos: Todo = sqlx_exec::fetch_as_one(&db_pool, &sb).await?;
 	Ok(todos)
 }

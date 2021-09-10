@@ -60,7 +60,7 @@ async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 	// do update
 	let test_title_for_all = "test - new title";
 	let fields = vec![("title", test_title_for_all).into()];
-	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1.into())]);
+	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1)]);
 	let row_affected = sqlx_exec::exec(&db_pool, &sb).await?;
 	assert_eq!(1, row_affected, "row_affected");
 
@@ -88,7 +88,7 @@ async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 	// do update
 	let test_title_new = "test - new title";
 	let fields = vec![("title", test_title_new).into()];
-	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1.into())]);
+	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1)]);
 	let sb = sb.returning(&["id", "title"]);
 	let (returned_todo_1_id, returned_todo_1_title) = sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
 

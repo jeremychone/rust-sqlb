@@ -67,16 +67,12 @@ Start a postgressql
 # In terminal 1 - start postges
 docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:13
 
-# In terminal 2 - launch psql on the postges instance above
+# In terminal 2 - (optional) launch psql on the postges instance above
 docker exec -it -u postgres pg psql
 
-# In terminal 3 - run the first rudementary tests (single thread mode to avoid db inconsistencies)
-cargo test --tests -- --test-threads=1
-# or watch test_sb_insert
-cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
-# or watch test_sb_update
-cargo watch -q -c -x 'test --test test_sb_update -- --test-threads=1'
-# or watch test_sb_delete
-cargo watch -q -c -x 'test --test test_sb_delete -- --test-threads=1'
+# In terminal 3 - MUST run with `--test-threads=1` to avoid database access conflicts
+cargo test -- --test-threads=1
 
+# or watch a particular test target
+cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
 ```
