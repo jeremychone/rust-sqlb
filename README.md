@@ -1,11 +1,11 @@
 
-**IMPORTANT - Still experimental and extremely incomplete. All 0.0.x version will be experimental and probably break APIs in each release**
+**IMPORTANT - Still experimental and extremely incomplete. All 0.0.x versions will be experimental and probably break APIs in each release**
 
 **sqlb** is intended to be a simple and progressive SQLBuilder for Rust, independent from database SQL executor.
 
-- **Simple** - Focused on providing an expressive, composable, and typed way to build parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive, composable, and typed pragmatically.
+- **Simple** - Focused on providing an expressive, composable, and typed way to build parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
 - **Progressive** - From arbitrary data in and out (list of names/values), to eventually, struct and mapping rules. 
-- **Focused** - Not an ORM, Not a database "executor/driver." Executor wrappers will be provided as features. The first wrapper will be for [sqlx](https://github.com/launchbadge/sqlx), and eventually one for [tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/). But since the core `sqlb` api is about creating a parameterized sql (`builder.sql() -> String`) and a list of values (`builder.vals() -> Vec<val>`), integrating with any other database connectivity libraries should be trivial. 
+- **Focused** - Not an ORM, Not a database "executor/driver." Executor wrappers will be provided as features. The first wrapper will be for [sqlx](https://github.com/launchbadge/sqlx), and eventually one for [tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/). But since the core `sqlb` api is about creating a parameterized SQL (`builder.sql() -> String`) and a list of values (`builder.vals() -> Vec<val>`), integrating with any other database connectivity libraries should be trivial. 
 
 > NOTE: SQL Builders are typically not to be used directly by application business logic, but rather to be wrapped in some sort of Application Data Access Layer (DAOs, DM, patterns). 
 
@@ -57,13 +57,13 @@ impl GetFields for TodoPatch {
 
 ## For sqlb Dev
 
-Start a postgressql
+Start a PostgreSQL
 
 ```sh
 # In terminal 1 - start postges
 docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:13
 
-# In terminal 2 - (optional) launch psql on the postges instance above
+# In terminal 2 - (optional) launch psql on the Postgres instance above
 docker exec -it -u postgres pg psql
 
 # In terminal 3 - MUST run with `--test-threads=1` to avoid database access conflicts
