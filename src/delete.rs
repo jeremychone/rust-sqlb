@@ -27,7 +27,7 @@ pub struct SqlDeleteBuilder {
 }
 
 impl SqlDeleteBuilder {
-	pub fn and_where(mut self, wheres: &[(&str, &str, impl ValType + Clone)]) -> Self {
+	pub fn and_where(mut self, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Self {
 		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
 		self
 	}

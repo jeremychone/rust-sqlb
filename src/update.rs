@@ -1,4 +1,4 @@
-use crate::{Field, SqlBuilder, Val, ValType, WhereItem, into_and_wheres, into_returnings, sql_returnings, sql_where_items, x_name};
+use crate::{into_and_wheres, into_returnings, sql_returnings, sql_where_items, x_name, Field, SqlBuilder, Val, ValType, WhereItem};
 
 pub fn update(table: &str) -> SqlUpdateBuilder {
 	SqlUpdateBuilder {
@@ -35,7 +35,7 @@ impl SqlUpdateBuilder {
 		self
 	}
 
-	pub fn and_where(mut self, wheres: &[(&str, &str, impl ValType + Clone)]) -> Self {
+	pub fn and_where(mut self, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Self {
 		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
 		self
 	}

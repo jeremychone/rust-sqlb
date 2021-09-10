@@ -33,15 +33,15 @@ impl<T: ValType> From<(&str, T)> for Field {
 #[derive(Clone)]
 struct WhereItem {
 	name: String,
-	op: String,
+	op: &'static str,
 	val: Val,
 }
 
-impl<T: ValType> From<(&str, &str, T)> for WhereItem {
-	fn from((name, op, value): (&str, &str, T)) -> Self {
+impl<T: ValType> From<(&str, &'static str, T)> for WhereItem {
+	fn from((name, op, value): (&str, &'static str, T)) -> Self {
 		WhereItem {
 			name: name.to_owned(),
-			op: op.to_owned(),
+			op,
 			val: value.to_val(),
 		}
 	}
@@ -90,14 +90,14 @@ pub trait SqlBuilder {
 // endregion: Common Types
 
 // region:    property into helpers
-fn into_and_wheres(and_wheres: Option<Vec<WhereItem>>, wheres: &[(&str, &str, impl ValType + Clone)]) -> Option<Vec<WhereItem>> {
+fn into_and_wheres(and_wheres: Option<Vec<WhereItem>>, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Option<Vec<WhereItem>> {
 	// Note: to_vec so that when it into_iter we do not get the reference of the tuple items
 	let wheres = wheres.to_vec();
 	let wheres: Vec<WhereItem> = wheres
 		.into_iter()
 		.map(|(name, op, val)| WhereItem {
 			name: name.to_owned(),
-			op: op.to_owned(),
+			op,
 			val: val.to_val(),
 		})
 		.collect();

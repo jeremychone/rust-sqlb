@@ -1,5 +1,5 @@
 use super::into_and_wheres;
-use crate::{OrderItem, SqlBuilder, Val, ValType, WhereItem, sql_where_items, x_name};
+use crate::{sql_where_items, x_name, OrderItem, SqlBuilder, Val, ValType, WhereItem};
 
 pub fn select(table: &str) -> SqlSelectBuilder {
 	SqlSelectBuilder {
@@ -24,7 +24,7 @@ impl SqlSelectBuilder {
 		self
 	}
 
-	pub fn and_where(mut self, wheres: &[(&str, &str, impl ValType + Clone)]) -> Self {
+	pub fn and_where(mut self, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Self {
 		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
 		self
 	}
