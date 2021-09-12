@@ -26,28 +26,33 @@ impl GetFields for TodoPatch {
 // endregion: Test Types
 
 // region:    Test Seed Utils
-#[allow(unused)] // Note: Since not used in all test/ files, remove warning
+
+// Note: Add the allow(unused) otherwise each test file not using one of those will show warning
+
+#[allow(unused)]
 pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i64, Box<dyn Error>> {
 	let patch_data = TodoPatch {
 		title: Some(title.to_string()),
 	};
+
 	let sb = sqlb::insert("todo").data(patch_data.fields());
 	let sb = sb.returning(&["id"]);
-	let (id,) = sqlx_exec::fetch_as_one::<(i64,), _>(db_pool, &sb).await?;
+	let (id,) = sqlx_exec::fetch_as_one::<(i64,), _, _>(db_pool, &sb).await?;
+
 	Ok(id)
 }
 
-#[allow(unused)] // Note: Since not used in all test/ files, remove warning
+#[allow(unused)]
 pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>, Box<dyn Error>> {
 	let sb = sqlb::select("todo").columns(&["id", "title"]).order_by("!id");
-	let todos = sqlx_exec::fetch_as_all::<Todo, _>(&db_pool, &sb).await?;
+	let todos = sqlx_exec::fetch_as_all::<Todo, _, _>(db_pool, &sb).await?;
 	Ok(todos)
 }
 
-#[allow(unused)] // Note: Since not used in all test/ files, remove warning
+#[allow(unused)]
 pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo, Box<dyn Error>> {
-	let sb = sqlb::select("todo").columns(&["id", "title"]).and_where(&[("id", "=", id)]);
-	let todos: Todo = sqlx_exec::fetch_as_one(&db_pool, &sb).await?;
+	let sb = sqlb::select("todo").columns(&["id", "title"]).and_where("id", "=", id);
+	let todos: Todo = sqlx_exec::fetch_as_one(db_pool, &sb).await?;
 	Ok(todos)
 }
 // endregion: Test Seed Utils
@@ -59,13 +64,32 @@ pub async fn init_db() -> Result<Pool<Postgres>, sqlx::Error> {
 		.connect("postgres://postgres:welcome@localhost/postgres")
 		.await?;
 
-	// Create todo table
 	sqlx::query("DROP TABLE IF EXISTS todo").execute(&pool).await?;
+
+	// create todo status
+	if let Err(ex) = sqlx::query("DROP TYPE todo_status_enum").execute(&pool).await {
+		println!("Warning - {}", ex);
+	}
+	sqlx::query(
+		r#"
+CREATE TYPE todo_status_enum AS ENUM (
+  'new',
+  'open',
+	'done'
+);	
+	"#,
+	)
+	.execute(&pool)
+	.await?;
+
+	// Create todo table
+
 	sqlx::query(
 		r#"
 CREATE TABLE IF NOT EXISTS todo (
   id bigserial,
-  title text
+  title text,
+	status todo_status_enum
 );"#,
 	)
 	.execute(&pool)

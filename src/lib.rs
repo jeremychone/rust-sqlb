@@ -1,9 +1,14 @@
+#![allow(unused)] // silence unused warnings while exploring (to comment out)
+
 mod delete;
 mod insert;
 mod select;
 pub mod sqlx_exec;
 mod update;
 mod val;
+
+use sqlx::Encode;
+use sqlx::Postgres;
 
 pub use crate::delete::delete;
 pub use crate::delete::delete_all;
@@ -15,38 +20,23 @@ pub use crate::select::SqlSelectBuilder;
 pub use crate::update::update;
 pub use crate::update::update_all;
 pub use crate::update::SqlUpdateBuilder;
-pub use crate::val::Val;
-pub use crate::val::ValType;
-
-// region:    Field
-#[derive(Clone)]
-pub struct Field(pub String, pub Val);
-
-pub trait GetFields {
-	fn fields(&self) -> Vec<Field>;
-}
-
-impl<T: ValType> From<(&str, T)> for Field {
-	fn from((name, value): (&str, T)) -> Self {
-		Field(name.to_owned(), value.to_val())
-	}
-}
-// endregion: Field
+pub use crate::val::Field;
+pub use crate::val::GetFields;
+pub use crate::val::SqlxBindable;
 
 // region:    Common Types
-#[derive(Clone)]
-struct WhereItem {
+struct WhereItem<'a> {
 	name: String,
 	op: &'static str,
-	val: Val,
+	val: Box<dyn SqlxBindable + 'a + Send + Sync>,
 }
 
-impl<T: ValType> From<(&str, &'static str, T)> for WhereItem {
+impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, &'static str, T)> for WhereItem<'a> {
 	fn from((name, op, value): (&str, &'static str, T)) -> Self {
 		WhereItem {
 			name: name.to_owned(),
 			op,
-			val: value.to_val(),
+			val: Box::new(value),
 		}
 	}
 }
@@ -87,32 +77,23 @@ impl From<&OrderItem> for String {
 	}
 }
 
-pub trait SqlBuilder {
+pub trait SqlBuilder<'a> {
 	fn sql(&self) -> String;
-	fn vals(&self) -> Vec<Val>;
+	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send>;
 }
+
 // endregion: Common Types
 
 // region:    property into helpers
-fn into_and_wheres(and_wheres: Option<Vec<WhereItem>>, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Option<Vec<WhereItem>> {
+fn add_to_where<'a, T: 'a + SqlxBindable + Send + Sync>(and_wheres: &mut Vec<WhereItem<'a>>, name: &str, op: &'static str, val: T) {
 	// Note: to_vec so that when it into_iter we do not get the reference of the tuple items
-	let wheres = wheres.to_vec();
-	let wheres: Vec<WhereItem> = wheres
-		.into_iter()
-		.map(|(name, op, val)| WhereItem {
-			name: name.to_owned(),
-			op,
-			val: val.to_val(),
-		})
-		.collect();
+	let wher = WhereItem {
+		name: name.to_owned(),
+		op,
+		val: Box::new(val),
+	};
 
-	match and_wheres {
-		Some(mut and_wheres) => {
-			and_wheres.extend(wheres);
-			Some(and_wheres)
-		}
-		None => Some(wheres),
-	}
+	and_wheres.push(wher);
 }
 
 // Note: for now does not care about the base
@@ -146,7 +127,7 @@ fn sql_where_items(where_items: &[WhereItem], idx_start: usize) -> String {
 		.enumerate()
 		.map(|(idx, WhereItem { name, op, .. })| format!("{} {} ${}", x_name(name), op, idx + idx_start))
 		.collect::<Vec<String>>()
-		.join(", ")
+		.join(" AND ")
 }
 
 // SQL: "Id", "userName", ...
@@ -154,35 +135,3 @@ fn sql_returnings(returnings: &[String]) -> String {
 	returnings.iter().map(|r| x_name(&r)).collect::<Vec<String>>().join(", ")
 }
 // endregion: Builder Utils
-
-#[cfg(test)]
-mod tests {
-	use crate::Field;
-
-	#[test]
-	fn field_from_str() {
-		let field = Field::from(("name1", "v2"));
-		assert_eq!("name1", field.0);
-
-		let field: Field = ("name1", "v2").into();
-		assert_eq!("name1", field.0);
-	}
-
-	#[test]
-	fn field_from_string() {
-		let field = Field::from(("name1", "v2"));
-		assert_eq!("name1", field.0);
-
-		let field: Field = ("name1", &"v2".to_string()).into();
-		assert_eq!("name1", field.0);
-	}
-
-	#[test]
-	fn field_from_i64() {
-		let field = Field::from(("name1", &"v2".to_string()));
-		assert_eq!("name1", field.0);
-
-		let field: Field = ("name1", &"v2".to_string()).into();
-		assert_eq!("name1", field.0);
-	}
-}

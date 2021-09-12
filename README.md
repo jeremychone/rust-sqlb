@@ -1,19 +1,26 @@
 
-**IMPORTANT - Still experimental and extremely incomplete. All 0.0.x versions will be experimental and probably break APIs in each release**
+**IMPORTANT - 0.0.x versions will be experimental and probably break APIs in each release.**
 
-**sqlb** is intended to be a simple and progressive SQLBuilder for Rust, independent from database SQL executor.
+**sqlb** is (will be) be a simple, expressive, and progressive SQLBuilder for Rust.
 
-- **Simple** - Focused on providing an expressive, composable, and typed way to build parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
+- **Simple** - Focused on providing an expressive, composable, and reasonnably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
+	- **Not** a database **executor/driver** (SQLX and tokio-postgres to name a few are excellent)
+	- **Not** an ORM, althought eventually, one could build an ORM on top of it. 
 - **Progressive** - From arbitrary data in and out (list of names/values), to eventually, struct and mapping rules. 
-- **Focused** - Not an ORM, Not a database "executor/driver." Executor wrappers will be provided as features. The first wrapper will be for [sqlx](https://github.com/launchbadge/sqlx), and eventually one for [tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/). But since the core `sqlb` api is about creating a parameterized SQL (`builder.sql() -> String`) and a list of values (`builder.vals() -> Vec<val>`), integrating with any other database connectivity libraries should be trivial. 
+- **Focused** - Not an ORM, Not a database "executor/driver." 
+	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
+	- **PostgreSQL** first, and then, as interest drives, multiple databases via sqlx. 
+	- **[tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/)** might be part of the plan as well, as it provides some interesting benefits visavis of query concurrency. 
+	
 
-> NOTE: SQL Builders are typically not to be used directly by application business logic, but rather to be wrapped in some sort of Application Data Access Layer (DAOs, DM, patterns). 
+> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (DAOs, DM, patterns). So rather than exposing an ORM API to the business logic, "Data Access Object" or "Model Access Object" interfaces are implemented via an SQLBuilder and then provide secure and constrained API and types to the rest of the application code. 
 
-Scope for first 0.1.x releases: 
 
-- Support for the PostgreSQL dialect. If more public interest, a dialect API will be evaluated. 
-- No macros, so `Get_Fields` needs to be written by hand. As the APIs/Models mature, macros will be implemented to avoid boilerplate code.
-- Currently, the Value system `Val` is extremely rudimentary, and more thought is needed to find the right model there. Feedback welcome.
+Goals for first **0.1.x** releases: 
+
+- **sqlx** - Will probably be SQLX centric. 
+- **PostgreSQL** - Will probably support SQLX only. Contributions for another database (via sqlx) welcome
+- **Macros** - Might not have many macros. The goal is to have a clean API first and then provide macros to reduce boilerplates. 
 
 
 ## Early API Example (just conceptual for now)

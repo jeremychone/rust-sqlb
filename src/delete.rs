@@ -1,11 +1,15 @@
-use crate::{into_and_wheres, into_returnings, sql_returnings, sql_where_items, SqlBuilder, Val, ValType, WhereItem};
+use crate::{
+	add_to_where, into_returnings, sql_returnings, sql_where_items,
+	val::{Field, SqlxBindable},
+	SqlBuilder, WhereItem,
+};
 
 pub fn delete(table: &str) -> SqlDeleteBuilder {
 	SqlDeleteBuilder {
 		guard_all: true,
 		table: table.to_string(),
 		returnings: None,
-		and_wheres: None,
+		and_wheres: Vec::new(),
 	}
 }
 
@@ -14,21 +18,25 @@ pub fn delete_all(table: &str) -> SqlDeleteBuilder {
 		guard_all: false,
 		table: table.to_string(),
 		returnings: None,
-		and_wheres: None,
+		and_wheres: Vec::new(),
 	}
 }
 
-#[derive(Clone)]
-pub struct SqlDeleteBuilder {
+pub struct SqlDeleteBuilder<'a> {
 	guard_all: bool,
 	table: String,
 	returnings: Option<Vec<String>>,
-	and_wheres: Option<Vec<WhereItem>>,
+	and_wheres: Vec<WhereItem<'a>>,
 }
 
-impl SqlDeleteBuilder {
-	pub fn and_where(mut self, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Self {
-		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
+impl<'a> SqlDeleteBuilder<'a> {
+	pub fn and_where<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, op: &'static str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, op, val);
+		self
+	}
+
+	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, "=", val);
 		self
 	}
 
@@ -38,7 +46,7 @@ impl SqlDeleteBuilder {
 	}
 }
 
-impl SqlBuilder for SqlDeleteBuilder {
+impl<'a> SqlBuilder<'a> for SqlDeleteBuilder<'a> {
 	fn sql(&self) -> String {
 		// SQL: DELETE FROM table_name WHERE w1 = $1, ... RETURNING r1, r2, ..;
 
@@ -46,8 +54,8 @@ impl SqlBuilder for SqlDeleteBuilder {
 		let mut sql = String::from(format!("DELETE FROM \"{}\" ", self.table));
 
 		// SQL: WHERE w1 < $1, ...
-		if let Some(and_wheres) = &self.and_wheres {
-			let sql_where = sql_where_items(&and_wheres, 1);
+		if self.and_wheres.len() > 0 {
+			let sql_where = sql_where_items(&self.and_wheres, 1);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		} else if self.guard_all {
 			// For now panic, will return error later
@@ -62,10 +70,8 @@ impl SqlBuilder for SqlDeleteBuilder {
 		sql
 	}
 
-	fn vals(&self) -> Vec<Val> {
-		match &self.and_wheres {
-			Some(and_wheres) => and_wheres.iter().map(|w| w.val.clone()).collect(),
-			None => Vec::new(),
-		}
+	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
+		let iter = self.and_wheres.iter().map(|wi| &wi.val);
+		Box::new(iter)
 	}
 }

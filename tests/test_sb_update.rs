@@ -25,13 +25,13 @@ fn sb_update_all_sql_ok() {
 async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
-	// fixtures
+	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
 	let _todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
 	let _todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
 
-	// do update
+	// DO update
 	let test_title_for_all = "test - new title for all";
 	let fields = vec![("title", test_title_for_all).into()];
 	let sb = sqlb::update_all("todo").data(fields);
@@ -51,16 +51,48 @@ async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
 async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
-	// fixtures
+	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
 	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
 	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
 
-	// do update
+	// DO update
 	let test_title_for_all = "test - new title";
 	let fields = vec![("title", test_title_for_all).into()];
-	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1)]);
+	let sb = sqlb::update("todo").data(fields).and_where_eq("id", todo_id_1);
+
+	let row_affected = sqlx_exec::exec(&db_pool, &sb).await?;
+	assert_eq!(1, row_affected, "row_affected");
+
+	// CHECK todo_1
+	let todo = util_fetch_todo(&db_pool, todo_id_1).await?;
+	assert_eq!(test_title_for_all, todo.title, "todo_1.tile");
+
+	// CHECK todo_2
+	let todo = util_fetch_todo(&db_pool, todo_id_2).await?;
+	assert_eq!(test_title_2, todo.title, "todo_1.tile");
+
+	Ok(())
+}
+
+#[tokio::test]
+async fn sb_update_exec_with_wheres() -> Result<(), Box<dyn Error>> {
+	let db_pool = init_db().await?;
+
+	// FIXTURES
+	let test_title_1 = "test - title 01";
+	let test_title_2 = "test - title 02";
+	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
+	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+
+	// DO update
+	let test_title_for_all = "test - new title";
+	let fields = vec![("title", test_title_for_all).into()];
+	let sb = sqlb::update("todo")
+		.data(fields)
+		.and_where("id", "=", todo_id_1)
+		.and_where("title", "=", test_title_1);
 	let row_affected = sqlx_exec::exec(&db_pool, &sb).await?;
 	assert_eq!(1, row_affected, "row_affected");
 
@@ -79,18 +111,18 @@ async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
-	// fixtures
+	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
 	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
 	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
 
-	// do update
+	// DO update
 	let test_title_new = "test - new title";
 	let fields = vec![("title", test_title_new).into()];
-	let sb = sqlb::update("todo").data(fields).and_where(&[("id", "=", todo_id_1)]);
+	let sb = sqlb::update("todo").data(fields).and_where("id", "=", todo_id_1);
 	let sb = sb.returning(&["id", "title"]);
-	let (returned_todo_1_id, returned_todo_1_title) = sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
+	let (returned_todo_1_id, returned_todo_1_title) = sqlx_exec::fetch_as_one::<(i64, String), _, _>(&db_pool, &sb).await?;
 
 	// CHECK return values
 	assert_eq!(todo_id_1, returned_todo_1_id);

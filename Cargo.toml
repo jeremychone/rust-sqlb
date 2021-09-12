@@ -23,7 +23,6 @@ categories = ["database"]
 license = "MIT"
 
 [dependencies]
-# FIXME - sqlx needs to be moved as a feature
 sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "postgres" ] }
 
 [dev-dependencies]

@@ -1,12 +1,16 @@
-use crate::{into_and_wheres, into_returnings, sql_returnings, sql_where_items, x_name, Field, SqlBuilder, Val, ValType, WhereItem};
+use crate::{
+	add_to_where, into_returnings, sql_returnings, sql_where_items,
+	val::{Field, SqlxBindable},
+	x_name, SqlBuilder, WhereItem,
+};
 
 pub fn update(table: &str) -> SqlUpdateBuilder {
 	SqlUpdateBuilder {
 		guard_all: true,
 		table: table.to_string(),
-		data: None,
+		data: Vec::new(),
 		returnings: None,
-		and_wheres: None,
+		and_wheres: Vec::new(),
 	}
 }
 
@@ -14,29 +18,33 @@ pub fn update_all(table: &str) -> SqlUpdateBuilder {
 	SqlUpdateBuilder {
 		guard_all: false,
 		table: table.to_string(),
-		data: None,
+		data: Vec::new(),
 		returnings: None,
-		and_wheres: None,
+		and_wheres: Vec::new(),
 	}
 }
 
-#[derive(Clone)]
-pub struct SqlUpdateBuilder {
+pub struct SqlUpdateBuilder<'a> {
 	guard_all: bool,
 	table: String,
-	data: Option<Vec<Field>>,
+	data: Vec<Field<'a>>,
 	returnings: Option<Vec<String>>,
-	and_wheres: Option<Vec<WhereItem>>,
+	and_wheres: Vec<WhereItem<'a>>,
 }
 
-impl SqlUpdateBuilder {
-	pub fn data(mut self, fields: Vec<Field>) -> Self {
-		self.data = Some(fields);
+impl<'a> SqlUpdateBuilder<'a> {
+	pub fn data(mut self, fields: Vec<Field<'a>>) -> Self {
+		self.data = fields;
 		self
 	}
 
-	pub fn and_where(mut self, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Self {
-		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
+	pub fn and_where<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, op: &'static str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, op, val);
+		self
+	}
+
+	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, "=", val);
 		self
 	}
 
@@ -46,7 +54,7 @@ impl SqlUpdateBuilder {
 	}
 }
 
-impl SqlBuilder for SqlUpdateBuilder {
+impl<'a> SqlBuilder<'a> for SqlUpdateBuilder<'a> {
 	fn sql(&self) -> String {
 		// SQL: UPDATE table_name SET column1 = $1, ... WHERE w1 = $2, w2 = $3 returning r1, r2;
 
@@ -59,21 +67,20 @@ impl SqlBuilder for SqlUpdateBuilder {
 		// TODO: Handle the case of empty data. Should we change this signature to return a Result ?
 		//       For now, just ignore this case, will fail at sql exec time
 		// SQL: column1 = $1, ...
-		if let Some(fields) = &self.data {
-			let sql_set = fields
-				.iter()
-				.enumerate()
-				.map(|(idx, f)| format!("{} = ${}", x_name(&f.0), idx + idx_start))
-				.collect::<Vec<String>>()
-				.join(", ");
-			sql.push_str(&format!("{} ", sql_set));
-			// update idx_start for next eventual parameters
-			idx_start = idx_start + fields.len();
-		}
+		let fields = &self.data;
+		let sql_set = fields
+			.iter()
+			.enumerate()
+			.map(|(idx, f)| format!("{} = ${}", x_name(&f.0), idx + idx_start))
+			.collect::<Vec<String>>()
+			.join(", ");
+		sql.push_str(&format!("{} ", sql_set));
+		// update idx_start for next eventual parameters
+		idx_start = idx_start + fields.len();
 
 		// SQL: WHERE w1 < $1, ...
-		if let Some(and_wheres) = &self.and_wheres {
-			let sql_where = sql_where_items(&and_wheres, idx_start);
+		if self.and_wheres.len() > 0 {
+			let sql_where = sql_where_items(&self.and_wheres, idx_start);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		} else if self.guard_all {
 			// For now panic, will return error later
@@ -88,14 +95,10 @@ impl SqlBuilder for SqlUpdateBuilder {
 		sql
 	}
 
-	fn vals(&self) -> Vec<Val> {
-		let mut base = match &self.data {
-			Some(fields) => fields.iter().map(|f| f.1.clone()).collect(),
-			None => Vec::new(),
-		};
-		if let Some(where_items) = &self.and_wheres {
-			base.extend(where_items.iter().map(|wi| wi.val.clone()));
-		}
-		base
+	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
+		let iter = self.data.iter().map(|field| &field.1);
+		// FIXME needs to uncomment
+		let iter = iter.chain(self.and_wheres.iter().map(|wi| &wi.val));
+		Box::new(iter)
 	}
 }

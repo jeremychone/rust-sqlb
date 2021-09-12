@@ -1,56 +1,86 @@
-//// NOTE: Very rudementary ValType/Val model. Exploration needed.
+use std::{pin::Pin, rc::Rc, sync::Arc};
 
-pub trait ValType {
-	fn to_val(self) -> Val;
+use sqlx::{
+	postgres::PgArguments,
+	query::{Query, QueryAs},
+	Arguments, Encode, Postgres, Type,
+};
+
+pub trait SqlxBindable {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments>;
 }
 
-impl ValType for bool {
-	fn to_val(self) -> Val {
-		Val::BOOL(self)
+// region:    Field
+// #[derive(Clone)]
+pub struct Field<'a>(pub String, pub Box<dyn SqlxBindable + 'a + Send + Sync>);
+
+pub trait GetFields {
+	fn fields(&self) -> Vec<Field>;
+}
+
+//// (&str, SqlxBindable) into Field(String, Box<dyn SqlxBindable>)
+impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
+	fn from((name, value): (&str, T)) -> Self {
+		Field(name.to_owned(), Box::new(value))
+	}
+}
+// endregion: field
+
+impl<'a> SqlxBindable for String {
+	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+		let query = query.bind(self.to_owned());
+		query
 	}
 }
 
-impl ValType for u32 {
-	fn to_val(self) -> Val {
-		Val::U32(self)
+impl<'a> SqlxBindable for &String {
+	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+		let query = query.bind(self.to_string());
+		query
 	}
 }
 
-impl ValType for i32 {
-	fn to_val(self) -> Val {
-		Val::I32(self)
+impl<'a> SqlxBindable for &str {
+	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+		let query = query.bind(self.to_string());
+		query
 	}
 }
 
-impl ValType for i64 {
-	fn to_val(self) -> Val {
-		Val::I64(self)
+impl<'a> SqlxBindable for i64 {
+	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+		let query = query.bind(*self);
+		query
 	}
 }
 
-impl ValType for String {
-	fn to_val(self) -> Val {
-		Val::STRING(self)
+impl<'a> SqlxBindable for &i64 {
+	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+		let query = query.bind(**self);
+		query
 	}
 }
 
-impl ValType for &String {
-	fn to_val(self) -> Val {
-		Val::STRING(self.to_owned())
-	}
-}
+#[cfg(test)]
+mod tests {
+	use crate::val::Field;
 
-impl ValType for &str {
-	fn to_val(self) -> Val {
-		Val::STRING(self.to_owned())
-	}
-}
+	#[test]
+	fn field_from_str() {
+		let field = Field::from(("name1", "v2"));
+		assert_eq!("name1", field.0);
 
-#[derive(Clone)]
-pub enum Val {
-	BOOL(bool),
-	U32(u32),
-	I32(i32),
-	I64(i64),
-	STRING(String),
+		let field: Field = ("name1", "v2").into();
+		assert_eq!("name1", field.0);
+	}
+
+	#[test]
+	fn field_from_string() {
+		let field = Field::from(("name1", "v1"));
+		assert_eq!("name1", field.0);
+
+		let v2 = &"v2".to_string();
+		let field: Field = ("name2", v2).into();
+		assert_eq!("name2", field.0);
+	}
 }

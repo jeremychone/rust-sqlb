@@ -1,31 +1,40 @@
-use super::into_and_wheres;
-use crate::{sql_where_items, x_name, OrderItem, SqlBuilder, Val, ValType, WhereItem};
+use super::add_to_where;
+use crate::{
+	sql_where_items,
+	val::{Field, SqlxBindable},
+	x_name, OrderItem, SqlBuilder, WhereItem,
+};
 
 pub fn select(table: &str) -> SqlSelectBuilder {
 	SqlSelectBuilder {
 		table: table.to_string(),
 		columns: None,
-		and_wheres: None,
+		and_wheres: Vec::new(),
 		order_bys: None,
 	}
 }
 
-pub struct SqlSelectBuilder {
+pub struct SqlSelectBuilder<'a> {
 	table: String,
 	columns: Option<Vec<String>>,
 	// TODO: needs to support full condition (and/or)
-	and_wheres: Option<Vec<WhereItem>>,
+	and_wheres: Vec<WhereItem<'a>>,
 	order_bys: Option<Vec<OrderItem>>,
 }
 
-impl SqlSelectBuilder {
+impl<'a> SqlSelectBuilder<'a> {
 	pub fn columns(mut self, names: &[&str]) -> Self {
 		self.columns = Some(names.into_iter().map(|s| s.to_string()).collect());
 		self
 	}
 
-	pub fn and_where(mut self, wheres: &[(&str, &'static str, impl ValType + Clone)]) -> Self {
-		self.and_wheres = into_and_wheres(self.and_wheres, wheres);
+	pub fn and_where<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, op: &'static str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, op, val);
+		self
+	}
+
+	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, "=", val);
 		self
 	}
 
@@ -40,7 +49,7 @@ impl SqlSelectBuilder {
 	}
 }
 
-impl SqlBuilder for SqlSelectBuilder {
+impl<'a> SqlBuilder<'a> for SqlSelectBuilder<'a> {
 	fn sql(&self) -> String {
 		// SELECT name1, name2 FROM table_name WHERE w1 < r1, w2 = r2
 
@@ -61,8 +70,8 @@ impl SqlBuilder for SqlSelectBuilder {
 		sql.push_str(&format!("FROM {} ", x_name(&self.table)));
 
 		// SQL: WHERE w1 < $1, ...
-		if let Some(and_wheres) = &self.and_wheres {
-			let sql_where = sql_where_items(&and_wheres, 1);
+		if self.and_wheres.len() > 0 {
+			let sql_where = sql_where_items(&self.and_wheres, 1);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		}
 
@@ -75,10 +84,8 @@ impl SqlBuilder for SqlSelectBuilder {
 		sql
 	}
 
-	fn vals(&self) -> Vec<Val> {
-		match &self.and_wheres {
-			Some(and_wheres) => and_wheres.iter().map(|w| w.val.clone()).collect(),
-			None => Vec::new(),
-		}
+	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
+		let iter = self.and_wheres.iter().map(|wi| &wi.val);
+		Box::new(iter)
 	}
 }

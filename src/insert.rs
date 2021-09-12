@@ -1,23 +1,27 @@
-use crate::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings, Field, SqlBuilder, Val};
+use std::{slice::Iter, vec::IntoIter};
+
+use sqlx::postgres::PgArguments;
+
+use crate::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings, Field, SqlBuilder, SqlxBindable};
 
 pub fn insert(table: &str) -> SqlInsertBuilder {
 	SqlInsertBuilder {
 		table: table.to_string(),
-		data: None,
+		data: Vec::new(),
 		returnings: None,
 	}
 }
 
-#[derive(Clone)]
-pub struct SqlInsertBuilder {
+// #[derive(Clone)]
+pub struct SqlInsertBuilder<'a> {
 	table: String,
-	data: Option<Vec<Field>>,
+	data: Vec<Field<'a>>,
 	returnings: Option<Vec<String>>,
 }
 
-impl SqlInsertBuilder {
-	pub fn data(mut self, fields: Vec<Field>) -> Self {
-		self.data = Some(fields);
+impl<'a> SqlInsertBuilder<'a> {
+	pub fn data(mut self, fields: Vec<Field<'a>>) -> Self {
+		self.data = fields;
 		self
 	}
 
@@ -27,7 +31,7 @@ impl SqlInsertBuilder {
 	}
 }
 
-impl SqlBuilder for SqlInsertBuilder {
+impl<'a> SqlBuilder<'a> for SqlInsertBuilder<'a> {
 	fn sql(&self) -> String {
 		// SQL: INSERT INTO table_name (name1, ...) VALUES ($1, ...) RETURNING r1, ...;
 
@@ -35,13 +39,12 @@ impl SqlBuilder for SqlInsertBuilder {
 		let mut sql = String::from(format!("INSERT INTO \"{}\" ", self.table));
 
 		// Note: empty data is a valid usecase, if the row has a all required field with default or auto gen.
-		if let Some(fields) = &self.data {
-			// SQL: (name1, name2, ...)
-			sql.push_str(&format!("({}) ", sql_comma_names(fields)));
+		let fields = &self.data;
+		// SQL: (name1, name2, ...)
+		sql.push_str(&format!("({}) ", sql_comma_names(fields)));
 
-			// SQL: VALUES ($1, $2, ...)
-			sql.push_str(&format!("VALUES ({}) ", sql_comma_params(fields)));
-		}
+		// SQL: VALUES ($1, $2, ...)
+		sql.push_str(&format!("VALUES ({}) ", sql_comma_params(fields)));
 
 		// SQL: RETURNING "r1", "r2", ...
 		if let Some(returnings) = &self.returnings {
@@ -51,10 +54,8 @@ impl SqlBuilder for SqlInsertBuilder {
 		sql
 	}
 
-	fn vals(&self) -> Vec<Val> {
-		match &self.data {
-			Some(fields) => fields.iter().map(|f| f.1.clone()).collect(),
-			None => Vec::new(),
-		}
+	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
+		let iter = self.data.iter().map(|field| &field.1);
+		Box::new(iter)
 	}
 }
