@@ -54,8 +54,13 @@ where
 
 pub fn sqlx_query_bind_vals<'q>(mut query: Query<'q, Postgres, PgArguments>, vals: Vec<Val>) -> Query<'q, sqlx::Postgres, PgArguments> {
 	for val in vals.into_iter() {
+		// NOTE: for now, needs to duplicate with code below because .bind is not a trait.
+		// TODO: Define/impl a custom trait for both Query and QueryAs to expose common bind
 		match val {
+			Val::BOOL(val) => query = query.bind(val),
 			Val::STRING(val) => query = query.bind(val),
+			Val::U32(val) => query = query.bind(val),
+			Val::I32(val) => query = query.bind(val),
 			Val::I64(val) => query = query.bind(val),
 		};
 	}
@@ -64,15 +69,13 @@ pub fn sqlx_query_bind_vals<'q>(mut query: Query<'q, Postgres, PgArguments>, val
 
 pub fn sqlx_bind_vals<'q, E>(mut query: QueryAs<'q, Postgres, E, PgArguments>, vals: Vec<Val>) -> QueryAs<'q, sqlx::Postgres, E, PgArguments> {
 	for val in vals.into_iter() {
-		query = sqlx_bind_val(query, val);
+		match val {
+			Val::BOOL(val) => query = query.bind(val),
+			Val::STRING(val) => query = query.bind(val),
+			Val::U32(val) => query = query.bind(val),
+			Val::I32(val) => query = query.bind(val),
+			Val::I64(val) => query = query.bind(val),
+		};
 	}
-	query
-}
-
-pub fn sqlx_bind_val<'q, E>(mut query: QueryAs<'q, Postgres, E, PgArguments>, val: Val) -> QueryAs<'q, sqlx::Postgres, E, PgArguments> {
-	match val {
-		Val::STRING(val) => query = query.bind(val),
-		Val::I64(val) => query = query.bind(val),
-	};
 	query
 }

@@ -7,10 +7,14 @@ mod val;
 
 pub use crate::delete::delete;
 pub use crate::delete::delete_all;
+pub use crate::delete::SqlDeleteBuilder;
 pub use crate::insert::insert;
+pub use crate::insert::SqlInsertBuilder;
 pub use crate::select::select;
+pub use crate::select::SqlSelectBuilder;
 pub use crate::update::update;
 pub use crate::update::update_all;
+pub use crate::update::SqlUpdateBuilder;
 pub use crate::val::Val;
 pub use crate::val::ValType;
 
