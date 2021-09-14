@@ -1,6 +1,6 @@
 [package]
 name = "sqlb"
-version = "0.0.3-SNAPSHOT"
+version = "0.0.3"
 authors = ["Jeremy Chone <jeremy.chone@gmail.com>"]
 edition = "2018"
 include = [
@@ -11,7 +11,7 @@ include = [
 ]
 homepage = "https://github.com/jeremychone/rust-sqlb"
 repository = "https://github.com/jeremychone/rust-sqlb"
-description = "Simple and expressive SQL Builder for Rust (Database Executor/Driver Independent)."
+description = "Simple, expressive, and progressive SQL Builder for Rust."
 keywords = [
 	"sql",
 	"sqlbuilder",
