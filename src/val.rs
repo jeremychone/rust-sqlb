@@ -1,22 +1,12 @@
-use std::{pin::Pin, rc::Rc, sync::Arc};
+use sqlx::{postgres::PgArguments, query::Query, Postgres};
 
-use sqlx::{
-	postgres::PgArguments,
-	query::{Query, QueryAs},
-	Arguments, Encode, Postgres, Type,
-};
+use crate::Field;
 
 pub trait SqlxBindable {
 	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments>;
 }
 
 // region:    Field
-// #[derive(Clone)]
-pub struct Field<'a>(pub String, pub Box<dyn SqlxBindable + 'a + Send + Sync>);
-
-pub trait GetFields {
-	fn fields(&self) -> Vec<Field>;
-}
 
 //// (&str, SqlxBindable) into Field(String, Box<dyn SqlxBindable>)
 impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
@@ -26,40 +16,44 @@ impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
 }
 // endregion: field
 
+// region:    Default SqlxBindable
+// NOTE: SqlxBindable might be a temporary construct while the API get finalized.
+//       If sqlx is decided for 0.1.x, the sqlx trait object might be used, assuming not caveats.
 impl<'a> SqlxBindable for String {
-	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(self.to_owned());
 		query
 	}
 }
 
 impl<'a> SqlxBindable for &String {
-	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(self.to_string());
 		query
 	}
 }
 
 impl<'a> SqlxBindable for &str {
-	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(self.to_string());
 		query
 	}
 }
 
 impl<'a> SqlxBindable for i64 {
-	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(*self);
 		query
 	}
 }
 
 impl<'a> SqlxBindable for &i64 {
-	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(**self);
 		query
 	}
 }
+// endregion: Default SqlxBindable
 
 #[cfg(test)]
 mod tests {

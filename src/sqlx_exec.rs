@@ -2,16 +2,11 @@
 // sqlx-exec - module for the sqlx query executor
 ////
 
-use sqlx::{
-	postgres::PgArguments,
-	query::{Query, QueryAs},
-	Execute, Executor, FromRow, Postgres,
-};
-
-use crate::{val::Field, SqlBuilder};
+use crate::SqlBuilder;
+use sqlx::{postgres::PgArguments, Execute, Executor, FromRow, Postgres};
 
 /// Build a sqlx::query_as for the D (Data) generic type, binds the values, and does a .fetch_one and returns E
-pub async fn fetch_as_one<'q, D, E, Q>(db_exec: E, sb: &'q Q) -> Result<D, sqlx::Error>
+pub async fn fetch_as_one<'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<D, sqlx::Error>
 where
 	E: Executor<'q, Database = Postgres>,
 	D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
@@ -30,12 +25,12 @@ where
 	let query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, query.take_arguments().unwrap());
 
 	// exec and return
-	let r = query.fetch_one(db_exec).await?;
+	let r = query.fetch_one(db_pool).await?;
 	Ok(r)
 }
 
 /// Build a sqlx::query_as for the D (Data) generic type, binds the values, and does a .fetch_all and returns Vec<E>
-pub async fn fetch_as_all<'q, D, E, Q>(db_exec: E, sb: &'q Q) -> Result<Vec<D>, sqlx::Error>
+pub async fn fetch_as_all<'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<Vec<D>, sqlx::Error>
 where
 	D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	E: Executor<'q, Database = Postgres>,
@@ -54,7 +49,7 @@ where
 	let query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, query.take_arguments().unwrap());
 
 	// exec and return
-	let r = query.fetch_all(db_exec).await?;
+	let r = query.fetch_all(db_pool).await?;
 	Ok(r)
 }
 

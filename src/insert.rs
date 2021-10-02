@@ -1,8 +1,5 @@
-use std::{slice::Iter, vec::IntoIter};
-
-use sqlx::postgres::PgArguments;
-
-use crate::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings, Field, SqlBuilder, SqlxBindable};
+use crate::core::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings};
+use crate::{Field, SqlBuilder, SqlxBindable};
 
 pub fn insert(table: &str) -> SqlInsertBuilder {
 	SqlInsertBuilder {

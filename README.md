@@ -68,7 +68,7 @@ Start a PostgreSQL
 
 ```sh
 # In terminal 1 - start postges
-docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:13
+docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:14
 
 # In terminal 2 - (optional) launch psql on the Postgres instance above
 docker exec -it -u postgres pg psql

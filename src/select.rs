@@ -1,9 +1,6 @@
-use super::add_to_where;
-use crate::{
-	sql_where_items,
-	val::{Field, SqlxBindable},
-	x_name, OrderItem, SqlBuilder, WhereItem,
-};
+use crate::core::{add_to_where, sql_where_items, x_name};
+use crate::core::{OrderItem, WhereItem};
+use crate::{SqlBuilder, SqlxBindable};
 
 pub fn select(table: &str) -> SqlSelectBuilder {
 	SqlSelectBuilder {

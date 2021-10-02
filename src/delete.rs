@@ -1,8 +1,6 @@
-use crate::{
-	add_to_where, into_returnings, sql_returnings, sql_where_items,
-	val::{Field, SqlxBindable},
-	SqlBuilder, WhereItem,
-};
+use crate::core::WhereItem;
+use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items};
+use crate::{SqlBuilder, SqlxBindable};
 
 pub fn delete(table: &str) -> SqlDeleteBuilder {
 	SqlDeleteBuilder {

@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use sqlb::{sqlx_exec, Field, GetFields};
+use sqlb::{sqlx_exec, Field, HasFields};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 // region:    Test Types
@@ -14,7 +14,7 @@ pub struct TodoPatch {
 	pub title: Option<String>,
 }
 
-impl GetFields for TodoPatch {
+impl HasFields for TodoPatch {
 	fn fields(&self) -> Vec<Field> {
 		let mut fields = Vec::new();
 		if let Some(title) = &self.title {
@@ -70,7 +70,7 @@ pub async fn init_db() -> Result<Pool<Postgres>, sqlx::Error> {
 	if let Err(ex) = sqlx::query("DROP TYPE todo_status_enum").execute(&pool).await {
 		println!("Warning - {}", ex);
 	}
-	sqlx::query(
+	if let Err(ex) = sqlx::query(
 		r#"
 CREATE TYPE todo_status_enum AS ENUM (
   'new',
@@ -80,7 +80,10 @@ CREATE TYPE todo_status_enum AS ENUM (
 	"#,
 	)
 	.execute(&pool)
-	.await?;
+	.await
+	{
+		println!("ERROR CREATE TYPE todo_status_enum - {}", ex);
+	}
 
 	// Create todo table
 
@@ -89,6 +92,7 @@ CREATE TYPE todo_status_enum AS ENUM (
 CREATE TABLE IF NOT EXISTS todo (
   id bigserial,
   title text,
+	"desc" text,
 	status todo_status_enum
 );"#,
 	)

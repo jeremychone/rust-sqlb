@@ -1,6 +1,6 @@
 mod utils;
 
-use sqlb::{sqlx_exec, GetFields};
+use sqlb::{sqlx_exec, HasFields};
 use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, TodoPatch};
 

@@ -1,6 +1,6 @@
 [package]
 name = "sqlb"
-version = "0.0.3"
+version = "0.0.4-SNAPSHOT"
 authors = ["Jeremy Chone <jeremy.chone@gmail.com>"]
 edition = "2018"
 include = [
@@ -24,6 +24,7 @@ license = "MIT"
 
 [dependencies]
 sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "postgres" ] }
+sqlb-macros = { path = "sqlb-macros/" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
