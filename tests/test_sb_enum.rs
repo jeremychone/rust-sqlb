@@ -12,7 +12,7 @@ use std::{any::Any, error::Error};
 use utils::{init_db, util_fetch_all_todos, TodoPatch};
 
 // region:    Custom Type (enum)
-#[derive(Eq, PartialEq, Hash, sqlx::Type, Debug, Copy, Clone)]
+#[derive(Eq, PartialEq, Hash, sqlx::Type, Debug, Clone)]
 #[sqlx(type_name = "todo_status_enum")]
 #[sqlx(rename_all = "lowercase")]
 pub enum TodoStatus {
@@ -21,16 +21,17 @@ pub enum TodoStatus {
 	Done,
 }
 
+// NOTE: manual implementation, see test_rules for the macros alternative
 impl<'a> SqlxBindable for TodoStatus {
 	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
-		let query = query.bind(*self);
+		let query = query.bind(self.clone());
 		query
 	}
 }
 
 // endregion: Custom Type (enum)
 
-// THis is to test that the type above was undestood by Sqlx
+// This is to test that the type above was undestood by Sqlx
 #[tokio::test]
 async fn sb_enum_sqlx_raw_bind() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;

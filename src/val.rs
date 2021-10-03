@@ -1,63 +1,58 @@
 use sqlx::{postgres::PgArguments, query::Query, Postgres};
 
-use crate::Field;
-
 pub trait SqlxBindable {
 	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments>;
 }
 
-// region:    Field
+// CONSIDER: Might want to consolidate those macros to take a first params as the tile of binding
 
-//// (&str, SqlxBindable) into Field(String, Box<dyn SqlxBindable>)
-impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
-	fn from((name, value): (&str, T)) -> Self {
-		Field(name.to_owned(), Box::new(value))
-	}
-}
-// endregion: field
-
-// region:    Default SqlxBindable
-// NOTE: SqlxBindable might be a temporary construct while the API get finalized.
-//       If sqlx is decided for 0.1.x, the sqlx trait object might be used, assuming not caveats.
-impl<'a> SqlxBindable for String {
-	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
-		let query = query.bind(self.to_owned());
-		query
-	}
-}
-
-impl<'a> SqlxBindable for &String {
-	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
-		let query = query.bind(self.to_string());
-		query
-	}
+#[macro_export]
+macro_rules! bindable {
+	($($t:ident),*) => {
+		$(impl $crate::SqlxBindable for $t {
+			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+				let query = query.bind(self.clone());
+				query
+			}
+		}
+		impl $crate::SqlxBindable for &$t {
+			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+				let query = query.bind(<$t>::clone(self));
+				query
+			}
+		}
+		)*
+	};
 }
 
-impl<'a> SqlxBindable for &str {
-	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
-		let query = query.bind(self.to_string());
-		query
-	}
+#[macro_export]
+macro_rules! bindable_to_string {
+	($($t:ident),*) => {
+		$(impl $crate::SqlxBindable for $t {
+			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+				let query = query.bind(self.to_string());
+				query
+			}
+		}
+		impl $crate::SqlxBindable for &$t {
+			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+				let query = query.bind(self.to_string());
+				query
+			}
+		}
+		)*
+	};
 }
 
-impl<'a> SqlxBindable for i64 {
-	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
-		let query = query.bind(*self);
-		query
-	}
-}
-
-impl<'a> SqlxBindable for &i64 {
-	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
-		let query = query.bind(**self);
-		query
-	}
-}
-// endregion: Default SqlxBindable
+// Bind the numbers
+// NOTE: Skipping u8, u16, u64 since not mapped by sqlx to postgres
+bindable!(i8, i16, i32, i64, u32, f32, f64);
+// Bind the string types
+bindable_to_string!(String, str);
 
 #[cfg(test)]
 mod tests {
-	use crate::val::Field;
+	use crate::Field;
 
 	#[test]
 	fn field_from_str() {

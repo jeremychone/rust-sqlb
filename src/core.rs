@@ -13,6 +13,12 @@ pub use sqlb_macros::Fields;
 
 pub struct Field<'a>(pub String, pub Box<dyn SqlxBindable + 'a + Send + Sync>);
 
+impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
+	fn from((name, value): (&str, T)) -> Self {
+		Field(name.to_owned(), Box::new(value))
+	}
+}
+
 pub trait HasFields {
 	fn fields(&self) -> Vec<Field>;
 }
