@@ -4,28 +4,43 @@
 **sqlb** is (will be) be a simple, expressive, and progressive SQLBuilder for Rust.
 
 - **Simple** - Focused on providing an expressive, composable, and reasonnably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
-	- **Not** a database **executor/driver** (SQLX and tokio-postgres to name a few are excellent)
-	- **Not** an ORM, althought eventually, one could build an ORM on top of it. 
-- **Progressive** - From arbitrary data in and out (list of names/values), to eventually, struct and mapping rules. 
-- **Focused** - Not an ORM, Not a database "executor/driver." 
+	- **NOT** a database **executor/driver** (SQLX and tokio-postgres to name a few are excellent)
+	- **NOT** an **ORM**, although eventually, one could build an ORM on top of it. 
+- **Progressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
+- **Focused** 
 	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
-	- **PostgreSQL** first, and then, as interest drives, multiple databases via sqlx. 
-	- **[tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/)** might be part of the plan as well, as it provides some interesting benefits visavis of query concurrency. 
+	- **PostgreSQL** - First database support will be Postgres (via sqlx). Depending on interest and pull requests, other database support might be added.  
+	- **[tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/)** might be part of a future plan as well, as it provides some interesting concurrency benefits. 
 	
 
-> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (DAOs, DM, patterns). So rather than exposing an ORM API to the business logic, "Data Access Object" or "Model Access Object" interfaces are implemented via an SQLBuilder and then provide secure and constrained API and types to the rest of the application code. 
+> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (e.g., DAOs, MAOs - Model Access Object -). In fact, even when using ORMs, it is often a good code design to wrap those access via some data access layers. Given this approach, having a more flexible but still typed database access layer gives the "model access layer" more expressiveness and power. 
 
 
 Goals for first **0.1.x** releases: 
 
 - **sqlx** - Will probably be SQLX centric. 
 - **PostgreSQL** - Will probably support SQLX only. Contributions for another database (via sqlx) welcome
-- **Macros** - Might not have many macros. The goal is to have a clean API first and then provide macros to reduce boilerplates. 
+- **Macros** - to keep thing DRY (but they are optional, all can be implemented via trait objects)
 
 
 ## Early API Example (just conceptual for now)
 
 ```rust
+#[derive(sqlx::FromRow)] // Optional: to be able to use the sqlx_exec::fetch_as...
+pub struct Todo {
+    pub id: i64,
+    pub title: String,
+}
+
+#[derive(sqlb::Fields)] // implements sqlb::HasFields for dynamic binding
+pub struct TodoPatch {
+    pub title: Option<String>,
+}
+
+let patch_data = TodoPatch {
+	title: Some("Hello Title".to_string())
+};
+
 // INSERT - Insert a new Todo from a Partial todo
 let sb = sqlb::insert("todo").data(patch_data.fields());
 let sb = sb.returning(&["id", "title"]);
@@ -37,29 +52,6 @@ let todos: Vec<Todo> = sqlb::sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
 assert_eq!(1, todos.len());
 ```
 
-The data setup: 
-
-```rust
-#[derive(sqlx::FromRow)] // Optional: to be able to use the sqlx_exec::fetch_as...
-pub struct Todo {
-    pub id: i64,
-    pub title: String,
-}
-
-pub struct TodoPatch {
-    pub title: Option<String>,
-}
-
-impl GetFields for TodoPatch {
-	fn fields(&self) -> Vec<Field> {
-		let mut fields = Vec::new();
-		if let Some(title) = &self.title {
-			fields.push(("title", title).into());
-		}
-		fields
-	}
-}
-```
 
 
 ## For sqlb Dev
