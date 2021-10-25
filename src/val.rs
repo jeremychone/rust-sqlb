@@ -44,6 +44,8 @@ macro_rules! bindable_to_string {
 	};
 }
 
+// Bind the boolean
+bindable!(bool);
 // Bind the numbers
 // NOTE: Skipping u8, u16, u64 since not mapped by sqlx to postgres
 bindable!(i8, i16, i32, i64, u32, f32, f64);
