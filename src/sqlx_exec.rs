@@ -6,9 +6,9 @@ use crate::SqlBuilder;
 use sqlx::{postgres::PgArguments, Execute, Executor, FromRow, Postgres};
 
 /// Build a sqlx::query_as for the D (Data) generic type, binds the values, and does a .fetch_one and returns E
-pub async fn fetch_as_one<'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<D, sqlx::Error>
+pub async fn fetch_as_one<'e, 'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<D, sqlx::Error>
 where
-	E: Executor<'q, Database = Postgres>,
+	E: Executor<'e, Database = Postgres>,
 	D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	Q: SqlBuilder<'q>,
 {
@@ -30,10 +30,10 @@ where
 }
 
 /// Build a sqlx::query_as for the D (Data) generic type, binds the values, and does a .fetch_all and returns Vec<E>
-pub async fn fetch_as_all<'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<Vec<D>, sqlx::Error>
+pub async fn fetch_as_all<'e, 'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<Vec<D>, sqlx::Error>
 where
 	D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
-	E: Executor<'q, Database = Postgres>,
+	E: Executor<'e, Database = Postgres>,
 	Q: SqlBuilder<'q>,
 {
 	let sql = sb.sql();
