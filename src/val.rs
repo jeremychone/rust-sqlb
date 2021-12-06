@@ -1,22 +1,21 @@
-use sqlx::{postgres::PgArguments, query::Query, Postgres};
-
 pub trait SqlxBindable {
-	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments>;
+	fn bind_query<'q>(
+		&self,
+		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
+	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>;
 }
-
-// CONSIDER: Might want to consolidate those macros to take a first params as the tile of binding
 
 #[macro_export]
 macro_rules! bindable {
 	($($t:ident),*) => {
 		$(impl $crate::SqlxBindable for $t {
-			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
 				let query = query.bind(self.clone());
 				query
 			}
 		}
 		impl $crate::SqlxBindable for &$t {
-			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
 				let query = query.bind(<$t>::clone(self));
 				query
 			}
@@ -29,13 +28,13 @@ macro_rules! bindable {
 macro_rules! bindable_to_string {
 	($($t:ident),*) => {
 		$(impl $crate::SqlxBindable for $t {
-			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
 				let query = query.bind(self.to_string());
 				query
 			}
 		}
 		impl $crate::SqlxBindable for &$t {
-			fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
 				let query = query.bind(self.to_string());
 				query
 			}
