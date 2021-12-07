@@ -1,6 +1,7 @@
 mod utils;
 
-use sqlb::{sqlx_exec, SqlBuilder};
+use sqlb::{sqlx_exec, Field, Raw, SqlBuilder};
+use sqlx::types::time::OffsetDateTime;
 use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, util_insert_todo};
 
@@ -131,6 +132,27 @@ async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 	// CHECK todo_2
 	let todo = util_fetch_todo(&db_pool, todo_id_2).await?;
 	assert_eq!(test_title_2, todo.title, "todo_1.tile");
+
+	Ok(())
+}
+
+#[tokio::test]
+async fn sb_update_raw() -> Result<(), Box<dyn Error>> {
+	let db_pool = init_db().await?;
+
+	// FIXTURE
+	let todo_id_1 = util_insert_todo("test_title_1", &db_pool).await?;
+	let test_title_new = "test - new title";
+
+	// ACTION
+	let fields: Vec<Field> = vec![("title", test_title_new).into(), ("ctime", Raw("now()")).into()];
+	let sb = sqlb::update("todo").data(fields).and_where_eq("id", todo_id_1);
+	let sb = sb.returning(&["id", "title", "ctime"]);
+	let (id, title, _ctime) = sqlx_exec::fetch_as_one::<(i64, String, OffsetDateTime), _, _>(&db_pool, &sb).await?;
+
+	// CHECK
+	assert_eq!(test_title_new, title);
+	assert_eq!(todo_id_1, id);
 
 	Ok(())
 }

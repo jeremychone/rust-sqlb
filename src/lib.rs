@@ -21,5 +21,6 @@ pub use crate::select::SqlSelectBuilder;
 pub use crate::update::update;
 pub use crate::update::update_all;
 pub use crate::update::SqlUpdateBuilder;
+pub use crate::val::Raw;
 pub use crate::val::SqlxBindable;
 pub use sqlb_macros::Fields;

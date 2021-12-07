@@ -92,6 +92,7 @@ CREATE TYPE todo_status_enum AS ENUM (
 CREATE TABLE IF NOT EXISTS todo (
   id bigserial,
   title text,
+	ctime timestamp with time zone,
 	"desc" text,
 	status todo_status_enum
 );"#,

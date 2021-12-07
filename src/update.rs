@@ -59,8 +59,8 @@ impl<'a> SqlBuilder<'a> for SqlUpdateBuilder<'a> {
 		// SQL: UPDATE table_name SET
 		let mut sql = String::from(format!("UPDATE \"{}\" SET ", self.table));
 
-		// The index for the params since we ahve two array
-		let mut idx_start = 1;
+		// Index for the $_idx_ in the prepared statement
+		let mut binding_idx = 1;
 
 		// TODO: Handle the case of empty data. Should we change this signature to return a Result ?
 		//       For now, just ignore this case, will fail at sql exec time
@@ -69,16 +69,24 @@ impl<'a> SqlBuilder<'a> for SqlUpdateBuilder<'a> {
 		let sql_set = fields
 			.iter()
 			.enumerate()
-			.map(|(idx, f)| format!("{} = ${}", x_name(&f.0), idx + idx_start))
+			.map(|(_, f)| {
+				let mut part = format!("{} = ", x_name(&f.0));
+				match f.1.raw() {
+					None => {
+						part.push_str(&format!("${}", binding_idx));
+						binding_idx += 1;
+					}
+					Some(raw) => part.push_str(raw),
+				}
+				part
+			})
 			.collect::<Vec<String>>()
 			.join(", ");
 		sql.push_str(&format!("{} ", sql_set));
-		// update idx_start for next eventual parameters
-		idx_start = idx_start + fields.len();
 
 		// SQL: WHERE w1 < $1, ...
 		if self.and_wheres.len() > 0 {
-			let sql_where = sql_where_items(&self.and_wheres, idx_start);
+			let sql_where = sql_where_items(&self.and_wheres, binding_idx);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		} else if self.guard_all {
 			// For now panic, will return error later

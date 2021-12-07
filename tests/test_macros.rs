@@ -1,7 +1,7 @@
 mod utils;
 
 use sqlb::sqlx_exec::fetch_as_one;
-use sqlb::{Field, Fields, HasFields};
+use sqlb::{Fields, HasFields};
 use utils::init_db;
 
 #[tokio::test]

@@ -41,7 +41,7 @@ impl<'a> SqlBuilder<'a> for SqlInsertBuilder<'a> {
 		sql.push_str(&format!("({}) ", sql_comma_names(fields)));
 
 		// SQL: VALUES ($1, $2, ...)
-		sql.push_str(&format!("VALUES ({}) ", sql_comma_params(fields)));
+		sql.push_str(&format!("VALUES ({}) ", sql_comma_params(fields).1));
 
 		// SQL: RETURNING "r1", "r2", ...
 		if let Some(returnings) = &self.returnings {

@@ -109,7 +109,7 @@ pub(crate) fn into_returnings(_base: Option<Vec<String>>, names: &[&str]) -> Opt
 
 // region:    Builder Utils
 /// escape column name
-/// TODO, needs to handle the . notation (i.e., quote each side of the dot)
+/// TODO: needs to handle the . notation (i.e., quote each side of the dot)
 pub(crate) fn x_name(name: &str) -> String {
 	format!("\"{}\"", name)
 }
@@ -120,12 +120,23 @@ pub(crate) fn sql_comma_names(fields: &[Field]) -> String {
 }
 
 // SQL: $1, $2, $3, ...
-pub(crate) fn sql_comma_params(fields: &[Field]) -> String {
-	(0..fields.len())
-		.into_iter()
-		.map(|i| format!("${}", i + 1))
-		.collect::<Vec<String>>()
-		.join(", ")
+pub(crate) fn sql_comma_params(fields: &[Field]) -> (i32, String) {
+	let mut vals = String::new();
+	let mut binding_idx = 1;
+
+	for (idx, Field(_, val)) in fields.iter().enumerate() {
+		if idx > 0 {
+			vals.push_str(", ");
+		};
+		match val.raw() {
+			None => {
+				vals.push_str(&format!("${}", binding_idx));
+				binding_idx += 1;
+			}
+			Some(raw) => vals.push_str(raw),
+		};
+	}
+	(binding_idx, vals)
 }
 
 // If first array, idx_offset should be 1

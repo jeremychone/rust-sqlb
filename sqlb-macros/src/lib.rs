@@ -53,8 +53,8 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 	//// Compose the final code
 	let output = quote! {
 		impl sqlb::HasFields for #struct_name {
-			fn fields(&self) -> Vec<Field> {
-				let mut ff: Vec<Field> = Vec::new();
+			fn fields(&self) -> Vec<sqlb::Field> {
+				let mut ff: Vec<sqlb::Field> = Vec::new();
 				#ff_pushes
 				#ff_opt_pushes
 				ff

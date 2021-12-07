@@ -3,6 +3,10 @@ pub trait SqlxBindable {
 		&self,
 		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
 	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>;
+
+	fn raw(&self) -> Option<&str> {
+		None
+	}
 }
 
 #[macro_export]
@@ -50,6 +54,25 @@ bindable!(bool);
 bindable!(i8, i16, i32, i64, u32, f32, f64);
 // Bind the string types
 bindable_to_string!(String, str);
+
+// region:    Raw Value
+
+pub struct Raw(pub &'static str);
+
+impl SqlxBindable for Raw {
+	// just return the query given, since no binding should be taken place
+	fn bind_query<'q>(
+		&self,
+		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
+	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
+		query
+	}
+
+	fn raw(&self) -> Option<&str> {
+		Some(&self.0)
+	}
+}
+// endregion: Raw Value
 
 #[cfg(test)]
 mod tests {
