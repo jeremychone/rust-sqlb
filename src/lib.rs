@@ -11,6 +11,7 @@ mod val;
 pub use crate::core::Field;
 pub use crate::core::HasFields;
 pub use crate::core::SqlBuilder;
+pub use crate::core::Whereable;
 pub use crate::delete::delete;
 pub use crate::delete::delete_all;
 pub use crate::delete::SqlDeleteBuilder;

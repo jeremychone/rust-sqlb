@@ -1,4 +1,4 @@
-use crate::core::{add_to_where, sql_where_items, x_name};
+use crate::core::{add_to_where, sql_where_items, x_name, Whereable};
 use crate::core::{OrderItem, WhereItem};
 use crate::{SqlBuilder, SqlxBindable};
 
@@ -20,13 +20,8 @@ pub struct SqlSelectBuilder<'a> {
 }
 
 impl<'a> SqlSelectBuilder<'a> {
-	pub fn table(mut self, table: &str) -> Self {
-		self.table = Some(table.to_string());
-		self
-	}
-
-	pub fn columns(mut self, names: &[&str]) -> Self {
-		self.columns = Some(names.into_iter().map(|s| s.to_string()).collect());
+	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self: Self, name: &str, val: T) -> Self {
+		add_to_where(&mut self.and_wheres, name, "=", val);
 		self
 	}
 
@@ -35,8 +30,13 @@ impl<'a> SqlSelectBuilder<'a> {
 		self
 	}
 
-	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, val: T) -> Self {
-		add_to_where(&mut self.and_wheres, name, "=", val);
+	pub fn table(mut self, table: &str) -> Self {
+		self.table = Some(table.to_string());
+		self
+	}
+
+	pub fn columns(mut self, names: &[&str]) -> Self {
+		self.columns = Some(names.into_iter().map(|s| s.to_string()).collect());
 		self
 	}
 
@@ -48,6 +48,16 @@ impl<'a> SqlSelectBuilder<'a> {
 	pub fn order_by(mut self, odr: &str) -> Self {
 		self.order_bys = Some(vec![odr.into()]);
 		self
+	}
+}
+
+impl<'a> Whereable<'a> for SqlSelectBuilder<'a> {
+	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: T) -> Self {
+		SqlSelectBuilder::and_where_eq(self, name, val)
+	}
+
+	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: T) -> Self {
+		SqlSelectBuilder::and_where(self, name, op, val)
 	}
 }
 

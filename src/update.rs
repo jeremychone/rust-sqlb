@@ -1,5 +1,5 @@
-use crate::core::WhereItem;
 use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items, x_name};
+use crate::core::{WhereItem, Whereable};
 use crate::{Field, SqlBuilder, SqlxBindable};
 
 pub fn update<'a>() -> SqlUpdateBuilder<'a> {
@@ -54,6 +54,16 @@ impl<'a> SqlUpdateBuilder<'a> {
 	pub fn returning(mut self, names: &[&str]) -> Self {
 		self.returnings = into_returnings(self.returnings, names);
 		self
+	}
+}
+
+impl<'a> Whereable<'a> for SqlUpdateBuilder<'a> {
+	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: T) -> Self {
+		SqlUpdateBuilder::and_where_eq(self, name, val)
+	}
+
+	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: T) -> Self {
+		SqlUpdateBuilder::and_where(self, name, op, val)
 	}
 }
 

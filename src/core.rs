@@ -82,6 +82,11 @@ pub trait SqlBuilder<'a> {
 	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send>;
 }
 
+pub trait Whereable<'a> {
+	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: T) -> Self;
+	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: T) -> Self;
+}
+
 // endregion: Common Types
 
 // region:    property into helpers
