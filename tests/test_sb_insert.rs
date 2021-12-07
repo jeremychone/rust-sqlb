@@ -15,7 +15,7 @@ async fn sb_insert() -> Result<(), Box<dyn Error>> {
 	};
 
 	// DO insert
-	let sb = sqlb::insert("todo").data(patch_data.fields());
+	let sb = sqlb::insert().table("todo").data(patch_data.fields());
 	let sb = sb.returning(&["id", "title"]);
 	let (_id, title) = sqlx_exec::fetch_as_one::<(i64, String), _, _>(&db_pool, &sb).await?;
 	assert_eq!(test_title, title);
@@ -40,7 +40,7 @@ async fn sb_insert_raw() -> Result<(), Box<dyn Error>> {
 	fields.push(("ctime", Raw("now()")).into());
 	fields.push(("title", test_title.to_string()).into());
 
-	let sb = sqlb::insert("todo").data(fields);
+	let sb = sqlb::insert().table("todo").data(fields);
 	let sb = sb.returning(&["id", "title", "ctime"]);
 	let (_id, title) = sqlx_exec::fetch_as_one::<(i64, String), _, _>(&db_pool, &sb).await?;
 	assert_eq!(test_title, title);

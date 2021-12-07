@@ -2,19 +2,19 @@ use crate::core::WhereItem;
 use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items};
 use crate::{SqlBuilder, SqlxBindable};
 
-pub fn delete(table: &str) -> SqlDeleteBuilder {
+pub fn delete<'a>() -> SqlDeleteBuilder<'a> {
 	SqlDeleteBuilder {
 		guard_all: true,
-		table: Some(table.to_string()),
+		table: None,
 		returnings: None,
 		and_wheres: Vec::new(),
 	}
 }
 
-pub fn delete_all(table: &str) -> SqlDeleteBuilder {
+pub fn delete_all<'a>() -> SqlDeleteBuilder<'a> {
 	SqlDeleteBuilder {
 		guard_all: false,
-		table: Some(table.to_string()),
+		table: None,
 		returnings: None,
 		and_wheres: Vec::new(),
 	}
@@ -28,6 +28,10 @@ pub struct SqlDeleteBuilder<'a> {
 }
 
 impl<'a> SqlDeleteBuilder<'a> {
+	pub fn table(mut self, table: &str) -> Self {
+		self.table = Some(table.to_string());
+		self
+	}
 	pub fn and_where<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, op: &'static str, val: T) -> Self {
 		add_to_where(&mut self.and_wheres, name, op, val);
 		self
@@ -52,7 +56,7 @@ impl<'a> SqlBuilder<'a> for SqlDeleteBuilder<'a> {
 		let mut sql = String::from("DELETE FROM ");
 
 		if let Some(table) = &self.table {
-			format!("\"{}\" ", table);
+			sql.push_str(&format!("\"{}\" ", table));
 		}
 
 		// SQL: WHERE w1 < $1, ...

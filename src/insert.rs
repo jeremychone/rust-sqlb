@@ -1,9 +1,9 @@
 use crate::core::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings};
 use crate::{Field, SqlBuilder, SqlxBindable};
 
-pub fn insert(table: &str) -> SqlInsertBuilder {
+pub fn insert<'a>() -> SqlInsertBuilder<'a> {
 	SqlInsertBuilder {
-		table: Some(table.to_string()),
+		table: None,
 		data: Vec::new(),
 		returnings: None,
 	}
@@ -17,6 +17,11 @@ pub struct SqlInsertBuilder<'a> {
 }
 
 impl<'a> SqlInsertBuilder<'a> {
+	pub fn table(mut self, table: &str) -> Self {
+		self.table = Some(table.to_string());
+		self
+	}
+
 	pub fn data(mut self, fields: Vec<Field<'a>>) -> Self {
 		self.data = fields;
 		self

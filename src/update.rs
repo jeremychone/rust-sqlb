@@ -2,20 +2,20 @@ use crate::core::WhereItem;
 use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items, x_name};
 use crate::{Field, SqlBuilder, SqlxBindable};
 
-pub fn update(table: &str) -> SqlUpdateBuilder {
+pub fn update<'a>() -> SqlUpdateBuilder<'a> {
 	SqlUpdateBuilder {
 		guard_all: true,
-		table: Some(table.to_string()),
+		table: None,
 		data: Vec::new(),
 		returnings: None,
 		and_wheres: Vec::new(),
 	}
 }
 
-pub fn update_all(table: &str) -> SqlUpdateBuilder {
+pub fn update_all<'a>() -> SqlUpdateBuilder<'a> {
 	SqlUpdateBuilder {
 		guard_all: false,
-		table: Some(table.to_string()),
+		table: None,
 		data: Vec::new(),
 		returnings: None,
 		and_wheres: Vec::new(),
@@ -31,6 +31,11 @@ pub struct SqlUpdateBuilder<'a> {
 }
 
 impl<'a> SqlUpdateBuilder<'a> {
+	pub fn table(mut self, table: &str) -> Self {
+		self.table = Some(table.to_string());
+		self
+	}
+
 	pub fn data(mut self, fields: Vec<Field<'a>>) -> Self {
 		self.data = fields;
 		self

@@ -54,7 +54,7 @@ async fn sb_enum_insert_() -> Result<(), Box<dyn Error>> {
 
 	// DO the insert
 	let mut data: Vec<Field> = vec![("title", title_1).into(), ("status", TodoStatus::Open).into()];
-	let sb = insert("todo").data(data).returning(&["id", "title", "status"]);
+	let sb = insert().table("todo").data(data).returning(&["id", "title", "status"]);
 	let (id_1, title, status) = sqlx_exec::fetch_as_one::<(i64, String, TodoStatus), _, _>(&db_pool, &sb).await?;
 
 	// CHECK the insert
@@ -62,7 +62,7 @@ async fn sb_enum_insert_() -> Result<(), Box<dyn Error>> {
 	assert_eq!(status_1, status);
 
 	// DO the select
-	let sb = select("todo").columns(&["id", "title", "status"]).and_where_eq("id", id_1);
+	let sb = select().table("todo").columns(&["id", "title", "status"]).and_where_eq("id", id_1);
 	let (id, title, status) = sqlx_exec::fetch_as_one::<(i64, String, TodoStatus), _, _>(&db_pool, &sb).await?;
 
 	// CHECK the insert

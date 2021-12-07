@@ -2,9 +2,9 @@ use crate::core::{add_to_where, sql_where_items, x_name};
 use crate::core::{OrderItem, WhereItem};
 use crate::{SqlBuilder, SqlxBindable};
 
-pub fn select(table: &str) -> SqlSelectBuilder {
+pub fn select<'a>() -> SqlSelectBuilder<'a> {
 	SqlSelectBuilder {
-		table: Some(table.to_string()),
+		table: None,
 		columns: None,
 		and_wheres: Vec::new(),
 		order_bys: None,
@@ -20,6 +20,11 @@ pub struct SqlSelectBuilder<'a> {
 }
 
 impl<'a> SqlSelectBuilder<'a> {
+	pub fn table(mut self, table: &str) -> Self {
+		self.table = Some(table.to_string());
+		self
+	}
+
 	pub fn columns(mut self, names: &[&str]) -> Self {
 		self.columns = Some(names.into_iter().map(|s| s.to_string()).collect());
 		self

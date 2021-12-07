@@ -1,19 +1,19 @@
 
 **IMPORTANT - 0.0.x versions will be experimental and probably break APIs in each release.**
 
-**sqlb** is (will be) be a simple, expressive, and progressive SQLBuilder for Rust.
+**sqlb** is (will be) a simple and expressive SQLBuilder for Rust.
 
 - **Simple** - Focused on providing an expressive, composable, and reasonnably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
-	- **NOT** a database **executor/driver** (SQLX and tokio-postgres to name a few are excellent)
+	- **NOT** a database **executor/driver** (Will be using SQLX as sql executore)
 	- **NOT** an **ORM**, although eventually, one could build an ORM on top of it. 
-- **Progressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
+- **Expressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
 - **Focused** 
 	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
 	- **PostgreSQL** - First database support will be Postgres (via sqlx). Depending on interest and pull requests, other database support might be added.  
 	- **[tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/)** might be part of a future plan as well, as it provides some interesting concurrency benefits. 
 	
 
-> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (e.g., DAOs, MAOs - Model Access Object -). In fact, even when using ORMs, it is often a good code design to wrap those access via some data access layers. Given this approach, having a more flexible but still typed database access layer gives the "model access layer" more expressiveness and power. 
+> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (e.g., DAOs or MACs - Model Access Controller -). In fact, even when using ORMs, it is often a good code design to wrap those access via some data access layers. 
 
 
 Goals for first **0.1.x** releases: 
@@ -52,6 +52,9 @@ let todos: Vec<Todo> = sqlb::sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
 assert_eq!(1, todos.len());
 ```
 
+## Latest Breaking Changes
+
+- `0.0.7` - `sqlb::insert().table("todo")` (in 0.0.7) rather than `sqlb::insert("toto")` (<=0.0.6) (for all SqlBuilders)
 
 
 ## For sqlb Dev
