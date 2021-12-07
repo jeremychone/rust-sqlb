@@ -42,12 +42,12 @@ let patch_data = TodoPatch {
 };
 
 // INSERT - Insert a new Todo from a Partial todo
-let sb = sqlb::insert("todo").data(patch_data.fields());
+let sb = sqlb::insert().table("todo").data(patch_data.fields());
 let sb = sb.returning(&["id", "title"]);
 let (_id, title) = sqlb::sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
 
 // SELECT - Get all todos
-let sb = sqlb::select("todo").columns(&["id", "title"]).order_by("!id");
+let sb = sqlb::select().table("todo").columns(&["id", "title"]).order_by("!id");
 let todos: Vec<Todo> = sqlb::sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
 assert_eq!(1, todos.len());
 ```

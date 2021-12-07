@@ -3,7 +3,7 @@ use crate::{Field, SqlBuilder, SqlxBindable};
 
 pub fn insert(table: &str) -> SqlInsertBuilder {
 	SqlInsertBuilder {
-		table: table.to_string(),
+		table: Some(table.to_string()),
 		data: Vec::new(),
 		returnings: None,
 	}
@@ -11,7 +11,7 @@ pub fn insert(table: &str) -> SqlInsertBuilder {
 
 // #[derive(Clone)]
 pub struct SqlInsertBuilder<'a> {
-	table: String,
+	table: Option<String>,
 	data: Vec<Field<'a>>,
 	returnings: Option<Vec<String>>,
 }
@@ -33,7 +33,11 @@ impl<'a> SqlBuilder<'a> for SqlInsertBuilder<'a> {
 		// SQL: INSERT INTO table_name (name1, ...) VALUES ($1, ...) RETURNING r1, ...;
 
 		// SQL: INSERT INTO table_name
-		let mut sql = String::from(format!("INSERT INTO \"{}\" ", self.table));
+		let mut sql = String::from("INSERT INTO ");
+
+		if let Some(table) = &self.table {
+			sql.push_str(&format!("\"{}\" ", table));
+		}
 
 		// Note: empty data is a valid usecase, if the row has a all required field with default or auto gen.
 		let fields = &self.data;

@@ -5,7 +5,7 @@ use crate::{SqlBuilder, SqlxBindable};
 pub fn delete(table: &str) -> SqlDeleteBuilder {
 	SqlDeleteBuilder {
 		guard_all: true,
-		table: table.to_string(),
+		table: Some(table.to_string()),
 		returnings: None,
 		and_wheres: Vec::new(),
 	}
@@ -14,7 +14,7 @@ pub fn delete(table: &str) -> SqlDeleteBuilder {
 pub fn delete_all(table: &str) -> SqlDeleteBuilder {
 	SqlDeleteBuilder {
 		guard_all: false,
-		table: table.to_string(),
+		table: Some(table.to_string()),
 		returnings: None,
 		and_wheres: Vec::new(),
 	}
@@ -22,7 +22,7 @@ pub fn delete_all(table: &str) -> SqlDeleteBuilder {
 
 pub struct SqlDeleteBuilder<'a> {
 	guard_all: bool,
-	table: String,
+	table: Option<String>,
 	returnings: Option<Vec<String>>,
 	and_wheres: Vec<WhereItem<'a>>,
 }
@@ -49,7 +49,11 @@ impl<'a> SqlBuilder<'a> for SqlDeleteBuilder<'a> {
 		// SQL: DELETE FROM table_name WHERE w1 = $1, ... RETURNING r1, r2, ..;
 
 		// SQL: DELETE FROM table_name
-		let mut sql = String::from(format!("DELETE FROM \"{}\" ", self.table));
+		let mut sql = String::from("DELETE FROM ");
+
+		if let Some(table) = &self.table {
+			format!("\"{}\" ", table);
+		}
 
 		// SQL: WHERE w1 < $1, ...
 		if self.and_wheres.len() > 0 {

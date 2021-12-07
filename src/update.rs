@@ -5,7 +5,7 @@ use crate::{Field, SqlBuilder, SqlxBindable};
 pub fn update(table: &str) -> SqlUpdateBuilder {
 	SqlUpdateBuilder {
 		guard_all: true,
-		table: table.to_string(),
+		table: Some(table.to_string()),
 		data: Vec::new(),
 		returnings: None,
 		and_wheres: Vec::new(),
@@ -15,7 +15,7 @@ pub fn update(table: &str) -> SqlUpdateBuilder {
 pub fn update_all(table: &str) -> SqlUpdateBuilder {
 	SqlUpdateBuilder {
 		guard_all: false,
-		table: table.to_string(),
+		table: Some(table.to_string()),
 		data: Vec::new(),
 		returnings: None,
 		and_wheres: Vec::new(),
@@ -24,7 +24,7 @@ pub fn update_all(table: &str) -> SqlUpdateBuilder {
 
 pub struct SqlUpdateBuilder<'a> {
 	guard_all: bool,
-	table: String,
+	table: Option<String>,
 	data: Vec<Field<'a>>,
 	returnings: Option<Vec<String>>,
 	and_wheres: Vec<WhereItem<'a>>,
@@ -57,7 +57,13 @@ impl<'a> SqlBuilder<'a> for SqlUpdateBuilder<'a> {
 		// SQL: UPDATE table_name SET column1 = $1, ... WHERE w1 = $2, w2 = $3 returning r1, r2;
 
 		// SQL: UPDATE table_name SET
-		let mut sql = String::from(format!("UPDATE \"{}\" SET ", self.table));
+		let mut sql = String::from("UPDATE ");
+
+		if let Some(table) = &self.table {
+			sql.push_str(&format!("\"{}\" ", table));
+		}
+
+		sql.push_str("SET ");
 
 		// Index for the $_idx_ in the prepared statement
 		let mut binding_idx = 1;

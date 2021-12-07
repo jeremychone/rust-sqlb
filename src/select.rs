@@ -4,7 +4,7 @@ use crate::{SqlBuilder, SqlxBindable};
 
 pub fn select(table: &str) -> SqlSelectBuilder {
 	SqlSelectBuilder {
-		table: table.to_string(),
+		table: Some(table.to_string()),
 		columns: None,
 		and_wheres: Vec::new(),
 		order_bys: None,
@@ -12,7 +12,7 @@ pub fn select(table: &str) -> SqlSelectBuilder {
 }
 
 pub struct SqlSelectBuilder<'a> {
-	table: String,
+	table: Option<String>,
 	columns: Option<Vec<String>>,
 	// TODO: needs to support full condition (and/or)
 	and_wheres: Vec<WhereItem<'a>>,
@@ -64,7 +64,9 @@ impl<'a> SqlBuilder<'a> for SqlSelectBuilder<'a> {
 		};
 
 		// SQL: FROM table_name
-		sql.push_str(&format!("FROM {} ", x_name(&self.table)));
+		if let Some(table) = &self.table {
+			sql.push_str(&format!("FROM {} ", x_name(table)));
+		}
 
 		// SQL: WHERE w1 < $1, ...
 		if self.and_wheres.len() > 0 {
