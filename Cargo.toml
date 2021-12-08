@@ -1,6 +1,6 @@
 [package]
 name = "sqlb"
-version = "0.0.7-SNAPSHOT.1"
+version = "0.0.7-SNAPSHOT.3"
 authors = ["Jeremy Chone <jeremy.chone@gmail.com>"]
 edition = "2018"
 homepage = "https://github.com/jeremychone/rust-sqlb"
@@ -22,6 +22,7 @@ members = [".", "sqlb-macros"]
 [dependencies]
 sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "postgres", "time" ] }
 sqlb-macros = { version="0.0.5-SNAPSHOT", path = "sqlb-macros" }
+async-trait = "0.1"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

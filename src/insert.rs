@@ -1,8 +1,10 @@
 use crate::core::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings};
-use crate::{Field, SqlBuilder, SqlxBindable};
+use crate::{sqlx_exec, Field, SqlBuilder, SqlxBindable};
+use async_trait::async_trait;
+use sqlx::{Executor, FromRow, Postgres};
 
-pub fn insert<'a>() -> SqlInsertBuilder<'a> {
-	SqlInsertBuilder {
+pub fn insert<'a>() -> InsertSqlBuilder<'a> {
+	InsertSqlBuilder {
 		table: None,
 		data: Vec::new(),
 		returnings: None,
@@ -10,13 +12,13 @@ pub fn insert<'a>() -> SqlInsertBuilder<'a> {
 }
 
 // #[derive(Clone)]
-pub struct SqlInsertBuilder<'a> {
+pub struct InsertSqlBuilder<'a> {
 	table: Option<String>,
 	data: Vec<Field<'a>>,
 	returnings: Option<Vec<String>>,
 }
 
-impl<'a> SqlInsertBuilder<'a> {
+impl<'a> InsertSqlBuilder<'a> {
 	pub fn table(mut self, table: &str) -> Self {
 		self.table = Some(table.to_string());
 		self
@@ -31,9 +33,33 @@ impl<'a> SqlInsertBuilder<'a> {
 		self.returnings = into_returnings(self.returnings, names);
 		self
 	}
+
+	pub async fn exec<'q, E>(&'a self, db_pool: E) -> Result<u64, sqlx::Error>
+	where
+		E: Executor<'q, Database = Postgres>,
+	{
+		sqlx_exec::exec(db_pool, self).await
+	}
+
+	pub async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		sqlx_exec::fetch_as_one::<D, E, _>(db_pool, self).await
+	}
+
+	pub async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		sqlx_exec::fetch_as_all::<D, E, _>(db_pool, self).await
+	}
 }
 
-impl<'a> SqlBuilder<'a> for SqlInsertBuilder<'a> {
+#[async_trait]
+impl<'a> SqlBuilder<'a> for InsertSqlBuilder<'a> {
 	fn sql(&self) -> String {
 		// SQL: INSERT INTO table_name (name1, ...) VALUES ($1, ...) RETURNING r1, ...;
 
@@ -63,5 +89,28 @@ impl<'a> SqlBuilder<'a> for SqlInsertBuilder<'a> {
 	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
 		let iter = self.data.iter().map(|field| &field.1);
 		Box::new(iter)
+	}
+
+	async fn exec<'q, E>(&'a self, db_pool: E) -> Result<u64, sqlx::Error>
+	where
+		E: Executor<'q, Database = Postgres>,
+	{
+		Self::exec(self, db_pool).await
+	}
+
+	async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		Self::fetch_one::<D, E>(self, db_pool).await
+	}
+
+	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		Self::fetch_all::<D, E>(self, db_pool).await
 	}
 }

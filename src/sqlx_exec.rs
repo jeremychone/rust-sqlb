@@ -32,8 +32,8 @@ where
 /// Build a sqlx::query_as for the D (Data) generic type, binds the values, and does a .fetch_all and returns Vec<E>
 pub async fn fetch_as_all<'e, 'q, D, E, Q>(db_pool: E, sb: &'q Q) -> Result<Vec<D>, sqlx::Error>
 where
-	D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	E: Executor<'e, Database = Postgres>,
+	D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	Q: SqlBuilder<'q>,
 {
 	let sql = sb.sql();
@@ -53,10 +53,10 @@ where
 	Ok(r)
 }
 
-pub async fn exec<'q, Q, E>(db_exec: E, sb: &'q Q) -> Result<u64, sqlx::Error>
+pub async fn exec<'e, 'q, Q, E>(db_pool: E, sb: &'q Q) -> Result<u64, sqlx::Error>
 where
 	Q: SqlBuilder<'q>,
-	E: Executor<'q, Database = Postgres>,
+	E: Executor<'e, Database = Postgres>,
 {
 	let sql = sb.sql();
 	let vals = sb.vals();
@@ -65,7 +65,7 @@ where
 		query = val.bind_query(query);
 	}
 
-	let r = query.execute(db_exec).await?.rows_affected();
+	let r = query.execute(db_pool).await?.rows_affected();
 
 	Ok(r)
 }

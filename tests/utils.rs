@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use sqlb::{sqlx_exec, Field, HasFields};
+use sqlb::{Field, HasFields};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 // region:    Test Types
@@ -37,7 +37,7 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 
 	let sb = sqlb::insert().table("todo").data(patch_data.fields());
 	let sb = sb.returning(&["id"]);
-	let (id,) = sqlx_exec::fetch_as_one::<(i64,), _, _>(db_pool, &sb).await?;
+	let (id,) = sb.fetch_one::<(i64,), _>(db_pool).await?;
 
 	Ok(id)
 }
@@ -45,14 +45,14 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 #[allow(unused)]
 pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>, Box<dyn Error>> {
 	let sb = sqlb::select().table("todo").columns(&["id", "title"]).order_by("!id");
-	let todos = sqlx_exec::fetch_as_all::<Todo, _, _>(db_pool, &sb).await?;
+	let todos = sb.fetch_all::<Todo, _>(db_pool).await?;
 	Ok(todos)
 }
 
 #[allow(unused)]
 pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo, Box<dyn Error>> {
 	let sb = sqlb::select().table("todo").columns(&["id", "title"]).and_where("id", "=", id);
-	let todos: Todo = sqlx_exec::fetch_as_one(db_pool, &sb).await?;
+	let todos = sb.fetch_one::<Todo, _>(db_pool).await?;
 	Ok(todos)
 }
 // endregion: Test Seed Utils

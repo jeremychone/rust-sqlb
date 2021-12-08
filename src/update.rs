@@ -1,9 +1,11 @@
 use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items, x_name};
 use crate::core::{WhereItem, Whereable};
-use crate::{Field, SqlBuilder, SqlxBindable};
+use crate::{sqlx_exec, Field, SqlBuilder, SqlxBindable};
+use async_trait::async_trait;
+use sqlx::{Executor, FromRow, Postgres};
 
-pub fn update<'a>() -> SqlUpdateBuilder<'a> {
-	SqlUpdateBuilder {
+pub fn update<'a>() -> UpdateSqlBuilder<'a> {
+	UpdateSqlBuilder {
 		guard_all: true,
 		table: None,
 		data: Vec::new(),
@@ -12,8 +14,8 @@ pub fn update<'a>() -> SqlUpdateBuilder<'a> {
 	}
 }
 
-pub fn update_all<'a>() -> SqlUpdateBuilder<'a> {
-	SqlUpdateBuilder {
+pub fn update_all<'a>() -> UpdateSqlBuilder<'a> {
+	UpdateSqlBuilder {
 		guard_all: false,
 		table: None,
 		data: Vec::new(),
@@ -22,7 +24,7 @@ pub fn update_all<'a>() -> SqlUpdateBuilder<'a> {
 	}
 }
 
-pub struct SqlUpdateBuilder<'a> {
+pub struct UpdateSqlBuilder<'a> {
 	guard_all: bool,
 	table: Option<String>,
 	data: Vec<Field<'a>>,
@@ -30,7 +32,7 @@ pub struct SqlUpdateBuilder<'a> {
 	and_wheres: Vec<WhereItem<'a>>,
 }
 
-impl<'a> SqlUpdateBuilder<'a> {
+impl<'a> UpdateSqlBuilder<'a> {
 	pub fn table(mut self, table: &str) -> Self {
 		self.table = Some(table.to_string());
 		self
@@ -55,19 +57,43 @@ impl<'a> SqlUpdateBuilder<'a> {
 		self.returnings = into_returnings(self.returnings, names);
 		self
 	}
+
+	pub async fn exec<'q, E>(&'a self, db_pool: E) -> Result<u64, sqlx::Error>
+	where
+		E: Executor<'q, Database = Postgres>,
+	{
+		sqlx_exec::exec(db_pool, self).await
+	}
+
+	pub async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		sqlx_exec::fetch_as_one::<D, E, _>(db_pool, self).await
+	}
+
+	pub async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		sqlx_exec::fetch_as_all::<D, E, _>(db_pool, self).await
+	}
 }
 
-impl<'a> Whereable<'a> for SqlUpdateBuilder<'a> {
+impl<'a> Whereable<'a> for UpdateSqlBuilder<'a> {
 	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: T) -> Self {
-		SqlUpdateBuilder::and_where_eq(self, name, val)
+		UpdateSqlBuilder::and_where_eq(self, name, val)
 	}
 
 	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: T) -> Self {
-		SqlUpdateBuilder::and_where(self, name, op, val)
+		UpdateSqlBuilder::and_where(self, name, op, val)
 	}
 }
 
-impl<'a> SqlBuilder<'a> for SqlUpdateBuilder<'a> {
+#[async_trait]
+impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 	fn sql(&self) -> String {
 		// SQL: UPDATE table_name SET column1 = $1, ... WHERE w1 = $2, w2 = $3 returning r1, r2;
 
@@ -127,5 +153,28 @@ impl<'a> SqlBuilder<'a> for SqlUpdateBuilder<'a> {
 		// FIXME needs to uncomment
 		let iter = iter.chain(self.and_wheres.iter().map(|wi| &wi.val));
 		Box::new(iter)
+	}
+
+	async fn exec<'q, E>(&'a self, db_pool: E) -> Result<u64, sqlx::Error>
+	where
+		E: Executor<'q, Database = Postgres>,
+	{
+		Self::exec(self, db_pool).await
+	}
+
+	async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		Self::fetch_one::<D, E>(self, db_pool).await
+	}
+
+	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		Self::fetch_all::<D, E>(self, db_pool).await
 	}
 }

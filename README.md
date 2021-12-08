@@ -10,8 +10,7 @@
 - **Focused** 
 	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
 	- **PostgreSQL** - First database support will be Postgres (via sqlx). Depending on interest and pull requests, other database support might be added.  
-	- **[tokio-postgres](https://docs.rs/tokio-postgres/0.7.2/tokio_postgres/)** might be part of a future plan as well, as it provides some interesting concurrency benefits. 
-	
+- **Prepared Statement ONLY!**	
 
 > NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (e.g., DAOs or MACs - Model Access Controller -). In fact, even when using ORMs, it is often a good code design to wrap those access via some data access layers. 
 
@@ -44,11 +43,11 @@ let patch_data = TodoPatch {
 // INSERT - Insert a new Todo from a Partial todo
 let sb = sqlb::insert().table("todo").data(patch_data.fields());
 let sb = sb.returning(&["id", "title"]);
-let (_id, title) = sqlb::sqlx_exec::fetch_as_one::<(i64, String), _>(&db_pool, &sb).await?;
+let (_id, title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
 
 // SELECT - Get all todos
 let sb = sqlb::select().table("todo").columns(&["id", "title"]).order_by("!id");
-let todos: Vec<Todo> = sqlb::sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
+let todos: Vec<Todo> = sb.fetch_as_all(&db_pool).await?;
 assert_eq!(1, todos.len());
 ```
 

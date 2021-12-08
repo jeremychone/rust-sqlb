@@ -1,6 +1,6 @@
 mod utils;
 
-use sqlb::{sqlx_exec, SqlBuilder};
+use sqlb::SqlBuilder;
 use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, util_insert_todo};
 
@@ -33,7 +33,7 @@ async fn sb_delete_exec() -> Result<(), Box<dyn Error>> {
 
 	// DO the delete
 	let sb = sqlb::delete().table("todo").and_where("id", "=", todo_id_1);
-	let row_affected = sqlx_exec::exec(&db_pool, &sb).await?;
+	let row_affected = sb.exec(&db_pool).await?;
 	assert_eq!(1, row_affected, "row_affected");
 
 	// CHECK if only one todo_1 was deleted
@@ -57,7 +57,7 @@ async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
 	// DO delete
 	let sb = sqlb::delete().table("todo").and_where("id", "=", todo_id_1);
 	let sb = sb.returning(&["id", "title"]);
-	let (deleted_todo_1_id, deleted_todo_1_title) = sqlx_exec::fetch_as_one::<(i64, String), _, _>(&db_pool, &sb).await?;
+	let (deleted_todo_1_id, deleted_todo_1_title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
 
 	// CHECK deleted returns
 	assert_eq!(test_title_1, deleted_todo_1_title);
@@ -85,7 +85,7 @@ async fn sb_delete_return_many() -> Result<(), Box<dyn Error>> {
 	let sb = sqlb::delete().table("todo").and_where("id", ">", 0);
 	let sb = sb.returning(&["id", "title"]);
 
-	let deleted: Vec<Todo> = sqlx_exec::fetch_as_all(&db_pool, &sb).await?;
+	let deleted: Vec<Todo> = sb.fetch_all(&db_pool).await?;
 
 	// CHECK deleted returns
 	assert_eq!(2, deleted.len());

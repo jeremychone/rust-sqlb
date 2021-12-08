@@ -1,15 +1,9 @@
-#![allow(unused)] // silence unused warnings while exploring (to comment out)
-
 mod utils;
 
-use sqlb::{insert, select, sqlx_exec, Field, SqlBuilder, SqlxBindable};
-use sqlx::{
-	postgres::{PgArgumentBuffer, PgArguments},
-	query::Query,
-	query_with, Arguments, Encode, Execute, IntoArguments, Postgres, Type,
-};
-use std::{any::Any, error::Error};
-use utils::{init_db, util_fetch_all_todos, TodoPatch};
+use sqlb::{Field, SqlxBindable};
+use sqlx::{postgres::PgArguments, query::Query, Postgres};
+use std::error::Error;
+use utils::init_db;
 
 // region:    Custom Type (enum)
 #[derive(Eq, PartialEq, Hash, sqlx::Type, Debug, Clone)]
@@ -23,7 +17,7 @@ pub enum TodoStatus {
 
 // NOTE: manual implementation, see test_rules for the macros alternative
 impl<'a> SqlxBindable for TodoStatus {
-	fn bind_query<'q>(&self, mut query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
+	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(self.clone());
 		query
 	}
@@ -39,7 +33,7 @@ async fn sb_enum_sqlx_raw_bind() -> Result<(), Box<dyn Error>> {
 	let query = sqlx::query::<sqlx::Postgres>("INSERT INTO todo (title, status) VALUES ($1, $2)");
 	let query = query.bind("test sb_enum_insert 01");
 	let query = query.bind(TodoStatus::Done);
-	let r = query.execute(&db_pool).await?.rows_affected();
+	let _r = query.execute(&db_pool).await?.rows_affected();
 
 	Ok(())
 }
@@ -53,17 +47,20 @@ async fn sb_enum_insert_() -> Result<(), Box<dyn Error>> {
 	let status_1 = TodoStatus::Open;
 
 	// DO the insert
-	let mut data: Vec<Field> = vec![("title", title_1).into(), ("status", TodoStatus::Open).into()];
-	let sb = insert().table("todo").data(data).returning(&["id", "title", "status"]);
-	let (id_1, title, status) = sqlx_exec::fetch_as_one::<(i64, String, TodoStatus), _, _>(&db_pool, &sb).await?;
+	let data: Vec<Field> = vec![("title", title_1).into(), ("status", TodoStatus::Open).into()];
+	let sb = sqlb::insert().table("todo").data(data).returning(&["id", "title", "status"]);
+	let (id_1, title, status) = sb.fetch_one::<(i64, String, TodoStatus), _>(&db_pool).await?;
 
 	// CHECK the insert
 	assert_eq!(title_1, title);
 	assert_eq!(status_1, status);
 
 	// DO the select
-	let sb = select().table("todo").columns(&["id", "title", "status"]).and_where_eq("id", id_1);
-	let (id, title, status) = sqlx_exec::fetch_as_one::<(i64, String, TodoStatus), _, _>(&db_pool, &sb).await?;
+	let sb = sqlb::select()
+		.table("todo")
+		.columns(&["id", "title", "status"])
+		.and_where_eq("id", id_1);
+	let (id, title, status) = sb.fetch_one::<(i64, String, TodoStatus), _>(&db_pool).await?;
 
 	// CHECK the insert
 	assert_eq!(id_1, id);

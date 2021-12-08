@@ -1,15 +1,20 @@
+use async_trait::async_trait;
+
 pub use crate::delete::delete;
 pub use crate::delete::delete_all;
-pub use crate::delete::SqlDeleteBuilder;
+pub use crate::delete::DeleteSqlBuilder;
 pub use crate::insert::insert;
-pub use crate::insert::SqlInsertBuilder;
+pub use crate::insert::InsertSqlBuilder;
 pub use crate::select::select;
-pub use crate::select::SqlSelectBuilder;
+pub use crate::select::SelectSqlBuilder;
 pub use crate::update::update;
 pub use crate::update::update_all;
-pub use crate::update::SqlUpdateBuilder;
+pub use crate::update::UpdateSqlBuilder;
 pub use crate::val::SqlxBindable;
 pub use sqlb_macros::Fields;
+use sqlx::Executor;
+use sqlx::FromRow;
+use sqlx::Postgres;
 
 pub struct Field<'a>(pub String, pub Box<dyn SqlxBindable + 'a + Send + Sync>);
 
@@ -77,9 +82,24 @@ impl From<&OrderItem> for String {
 	}
 }
 
+#[async_trait]
 pub trait SqlBuilder<'a> {
 	fn sql(&self) -> String;
 	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send>;
+
+	async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
+
+	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
+
+	async fn exec<'q, E>(&'a self, db_pool: E) -> Result<u64, sqlx::Error>
+	where
+		E: Executor<'q, Database = Postgres>;
 }
 
 pub trait Whereable<'a> {
