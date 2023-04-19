@@ -23,7 +23,7 @@ pub struct SelectSqlBuilder<'a> {
 }
 
 impl<'a> SelectSqlBuilder<'a> {
-	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self: Self, name: &str, val: T) -> Self {
+	pub fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(mut self, name: &str, val: T) -> Self {
 		add_to_where(&mut self.and_wheres, name, "=", val);
 		self
 	}
@@ -39,12 +39,12 @@ impl<'a> SelectSqlBuilder<'a> {
 	}
 
 	pub fn columns(mut self, names: &[&str]) -> Self {
-		self.columns = Some(names.into_iter().map(|s| s.to_string()).collect());
+		self.columns = Some(names.iter().map(|s| s.to_string()).collect());
 		self
 	}
 
 	pub fn order_bys(mut self, odrs: &[&str]) -> Self {
-		self.order_bys = Some(odrs.to_vec().into_iter().map(|o| o.into()).collect());
+		self.order_bys = Some(odrs.iter().copied().map(|o| o.into()).collect());
 		self
 	}
 
@@ -78,11 +78,11 @@ impl<'a> SelectSqlBuilder<'a> {
 }
 
 impl<'a> Whereable<'a> for SelectSqlBuilder<'a> {
-	fn and_where_eq<V: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: V) -> Self {
+	fn and_where_eq<V: 'a + SqlxBindable + Send + Sync>(self, name: &str, val: V) -> Self {
 		SelectSqlBuilder::and_where_eq(self, name, val)
 	}
 
-	fn and_where<V: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: V) -> Self {
+	fn and_where<V: 'a + SqlxBindable + Send + Sync>(self, name: &str, op: &'static str, val: V) -> Self {
 		SelectSqlBuilder::and_where(self, name, op, val)
 	}
 }
@@ -111,14 +111,18 @@ impl<'a> SqlBuilder<'a> for SelectSqlBuilder<'a> {
 		}
 
 		// SQL: WHERE w1 < $1, ...
-		if self.and_wheres.len() > 0 {
+		if !self.and_wheres.is_empty() {
 			let sql_where = sql_where_items(&self.and_wheres, 1);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		}
 
 		// SQL: ORDER BY
 		if let Some(order_bys) = &self.order_bys {
-			let sql_order_bys = order_bys.iter().map::<String, _>(|o| o.into()).collect::<Vec<String>>().join(", ");
+			let sql_order_bys = order_bys
+				.iter()
+				.map::<String, _>(|o| o.into())
+				.collect::<Vec<String>>()
+				.join(", ");
 			sql.push_str(&format!("ORDER BY {} ", sql_order_bys))
 		}
 

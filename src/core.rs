@@ -53,20 +53,20 @@ pub(crate) struct OrderItem {
 
 #[derive(Clone)]
 pub(crate) enum OrderDir {
-	ASC,
-	DESC,
+	Asc,
+	Desc,
 }
 
 impl From<&str> for OrderItem {
 	fn from(v: &str) -> Self {
-		if v.starts_with("!") {
+		if let Some(s) = v.strip_prefix('!') {
 			OrderItem {
-				dir: OrderDir::DESC,
-				name: x_name(&v[1..]),
+				dir: OrderDir::Desc,
+				name: x_name(s),
 			}
 		} else {
 			OrderItem {
-				dir: OrderDir::ASC,
+				dir: OrderDir::Asc,
 				name: x_name(v),
 			}
 		}
@@ -76,8 +76,8 @@ impl From<&str> for OrderItem {
 impl From<&OrderItem> for String {
 	fn from(odr: &OrderItem) -> Self {
 		match odr.dir {
-			OrderDir::ASC => format!("{}", odr.name),
-			OrderDir::DESC => format!("{} {}", odr.name, "DESC"),
+			OrderDir::Asc => odr.name.to_string(),
+			OrderDir::Desc => format!("{} {}", odr.name, "DESC"),
 		}
 	}
 }
@@ -103,8 +103,8 @@ pub trait SqlBuilder<'a> {
 }
 
 pub trait Whereable<'a> {
-	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: T) -> Self;
-	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: T) -> Self;
+	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self, name: &str, val: T) -> Self;
+	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self, name: &str, op: &'static str, val: T) -> Self;
 }
 
 // endregion: Common Types
@@ -128,7 +128,7 @@ pub(crate) fn add_to_where<'a, T: 'a + SqlxBindable + Send + Sync>(
 
 // Note: for now does not care about the base
 pub(crate) fn into_returnings(_base: Option<Vec<String>>, names: &[&str]) -> Option<Vec<String>> {
-	Some(names.into_iter().map(|s| s.to_string()).collect())
+	Some(names.iter().map(|s| s.to_string()).collect())
 }
 // endregion: property into helpers
 
@@ -141,7 +141,11 @@ pub(crate) fn x_name(name: &str) -> String {
 
 // SQL: "name1", "name2", ...
 pub(crate) fn sql_comma_names(fields: &[Field]) -> String {
-	fields.iter().map(|Field(name, _)| x_name(name)).collect::<Vec<String>>().join(", ")
+	fields
+		.iter()
+		.map(|Field(name, _)| x_name(name))
+		.collect::<Vec<String>>()
+		.join(", ")
 }
 
 // SQL: $1, $2, $3, ...
@@ -177,6 +181,6 @@ pub(crate) fn sql_where_items(where_items: &[WhereItem], idx_start: usize) -> St
 
 // SQL: "Id", "userName", ...
 pub(crate) fn sql_returnings(returnings: &[String]) -> String {
-	returnings.iter().map(|r| x_name(&r)).collect::<Vec<String>>().join(", ")
+	returnings.iter().map(|r| x_name(r)).collect::<Vec<String>>().join(", ")
 }
 // endregion: Builder Utils

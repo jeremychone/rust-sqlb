@@ -16,7 +16,7 @@ pub enum TodoStatus {
 }
 
 // NOTE: manual implementation, see test_rules for the macros alternative
-impl<'a> SqlxBindable for TodoStatus {
+impl SqlxBindable for TodoStatus {
 	fn bind_query<'q>(&self, query: Query<'q, Postgres, PgArguments>) -> Query<'q, sqlx::Postgres, PgArguments> {
 		let query = query.bind(self.clone());
 		query

@@ -69,7 +69,7 @@ impl SqlxBindable for Raw {
 	}
 
 	fn raw(&self) -> Option<&str> {
-		Some(&self.0)
+		Some(self.0)
 	}
 }
 // endregion: Raw Value

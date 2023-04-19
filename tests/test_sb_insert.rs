@@ -36,9 +36,7 @@ async fn sb_insert_raw() -> Result<(), Box<dyn Error>> {
 	let test_title = "test - title 02";
 
 	// ACTION
-	let mut fields: Vec<Field> = Vec::new();
-	fields.push(("ctime", Raw("now()")).into());
-	fields.push(("title", test_title.to_string()).into());
+	let fields: Vec<Field> = vec![("ctime", Raw("now()")).into(), ("title", test_title.to_string()).into()];
 
 	let sb = sqlb::insert().table("todo").data(fields);
 	let sb = sb.returning(&["id", "title", "ctime"]);

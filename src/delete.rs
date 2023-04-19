@@ -74,11 +74,11 @@ impl<'a> DeleteSqlBuilder<'a> {
 }
 
 impl<'a> Whereable<'a> for DeleteSqlBuilder<'a> {
-	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, val: T) -> Self {
+	fn and_where_eq<T: 'a + SqlxBindable + Send + Sync>(self, name: &str, val: T) -> Self {
 		DeleteSqlBuilder::and_where_eq(self, name, val)
 	}
 
-	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self: Self, name: &str, op: &'static str, val: T) -> Self {
+	fn and_where<T: 'a + SqlxBindable + Send + Sync>(self, name: &str, op: &'static str, val: T) -> Self {
 		DeleteSqlBuilder::and_where(self, name, op, val)
 	}
 }
@@ -96,7 +96,7 @@ impl<'a> SqlBuilder<'a> for DeleteSqlBuilder<'a> {
 		}
 
 		// SQL: WHERE w1 < $1, ...
-		if self.and_wheres.len() > 0 {
+		if !self.and_wheres.is_empty() {
 			let sql_where = sql_where_items(&self.and_wheres, 1);
 			sql.push_str(&format!("WHERE {} ", &sql_where));
 		} else if self.guard_all {
