@@ -64,6 +64,14 @@ impl<'a> DeleteSqlBuilder<'a> {
 		sqlx_exec::fetch_as_one::<D, E, _>(db_pool, self).await
 	}
 
+	pub async fn fetch_optional<'e, D, E>(&'a self, db_pool: E) -> Result<Option<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		sqlx_exec::fetch_as_optional::<D, E, _>(db_pool, self).await
+	}
+
 	pub async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
 	where
 		E: Executor<'e, Database = Postgres>,
@@ -130,6 +138,14 @@ impl<'a> SqlBuilder<'a> for DeleteSqlBuilder<'a> {
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
 		Self::fetch_one::<D, E>(self, db_pool).await
+	}
+
+	async fn fetch_optional<'e, D, E>(&'a self, db_pool: E) -> Result<Option<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
+	{
+		Self::fetch_optional::<D, E>(self, db_pool).await
 	}
 
 	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>

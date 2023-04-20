@@ -92,6 +92,11 @@ pub trait SqlBuilder<'a> {
 		E: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
 
+	async fn fetch_optional<'e, D, E>(&'a self, db_pool: E) -> Result<Option<D>, sqlx::Error>
+	where
+		E: Executor<'e, Database = Postgres>,
+		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
+
 	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
 	where
 		E: Executor<'e, Database = Postgres>,
