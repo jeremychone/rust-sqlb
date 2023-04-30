@@ -1,3 +1,6 @@
+use time::OffsetDateTime;
+use uuid::Uuid;
+
 pub trait SqlxBindable {
 	fn bind_query<'q>(
 		&self,
@@ -47,15 +50,18 @@ macro_rules! bindable_to_string {
 	};
 }
 
+// Bind the string types
+bindable_to_string!(String, str);
+
 // Bind the boolean
 bindable!(bool);
 // Bind the numbers
 // NOTE: Skipping u8, u16, u64 since not mapped by sqlx to postgres
 bindable!(i8, i16, i32, i64, f32, f64);
-// Bind the string types
-bindable_to_string!(String, str);
 
-// region:    Raw Value
+bindable!(Uuid, OffsetDateTime);
+
+// region:    --- Raw Value
 
 pub struct Raw(pub &'static str);
 
@@ -72,7 +78,7 @@ impl SqlxBindable for Raw {
 		Some(self.0)
 	}
 }
-// endregion: Raw Value
+// endregion: --- Raw Value
 
 #[cfg(test)]
 mod tests {
