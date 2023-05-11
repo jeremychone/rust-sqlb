@@ -42,7 +42,7 @@ let patch_data = TodoPatch {
 // INSERT - Insert a new Todo from a Partial todo
 let sb = sqlb::insert().table("todo").data(patch_data.fields());
 let sb = sb.returning(&["id", "title"]);
-let (_id, title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
+let (_id, title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 
 // SELECT - Get all todos
 let sb = sqlb::select().table("todo").columns(&["id", "title"]).order_by("!id");
