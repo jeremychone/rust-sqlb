@@ -1,25 +1,24 @@
 
-**IMPORTANT - 0.0.x versions will be experimental and probably break APIs in each release.**
+**sqlb** is a simple and expressive SQLBuilder for Rust for [sqlx](https://crates.io/crates/sqlx) focused on PostgreSQL for now. 
 
-**sqlb** is (will be) a simple and expressive SQLBuilder for Rust.
-
-- **Simple** - Focused on providing an expressive, composable, and reasonnably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
+- **Simple** - Focused on providing an expressive, composable, and reasonably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
 	- **NOT** a database **executor/driver** (Will be using SQLX as sql executore)
 	- **NOT** an **ORM**, although eventually, one could build an ORM on top of it. 
 - **Expressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
 - **Focused** 
 	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
-	- **PostgreSQL** - First database support will be Postgres (via sqlx). Depending on interest and pull requests, other database support might be added.  
+	- **PostgreSQL** - First database support will be Postgres (via sqlx). Additional database support may be added based on interest and pull requests.
 - **Prepared Statement ONLY!**	
 
-> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Data Access Layer (e.g., DAOs or MACs - Model Access Controller -). In fact, even when using ORMs, it is often a good code design to wrap those access via some data access layers. 
+> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller -). In fact, even when using ORMs, it is often a good code design to wrap those access via some data access layers. 
 
 
-Goals for first **0.1.x** releases: 
+Goals for first **0.x.x** releases: 
 
-- **sqlx** - Will probably be SQLX centric. 
-- **PostgreSQL** - Will probably support SQLX only. Contributions for another database (via sqlx) welcome
-- **Macros** - to keep thing DRY (but they are optional, all can be implemented via trait objects)
+- **sqlx** - Only plan to be on top of [sqlx](https://crates.io/crates/sqlx).
+- **PostgreSQL** - Focus only on the PostgreSQL.
+- **Macros** - Adding macros to keep thing DRY (but they are optional, all can be implemented via trait objects)
+- **limitations** - The sqlb traits can handle certain types of applications, but the trait model has limitations when it comes to external app types.
 
 
 ## Early API Example (just conceptual for now)
@@ -53,6 +52,7 @@ assert_eq!(1, todos.len());
 
 ## Latest Breaking Changes
 
+- `0.2.0` - Changing the generic order to match `sqlx`. From `.fetch_one::<(i64, String), _>` to `.fetch_one::<_, (i64, String)>`
 - `0.0.7` - `sqlb::insert().table("todo")` (in 0.0.7) rather than `sqlb::insert("toto")` (<=0.0.6) (for all SqlBuilders)
 
 

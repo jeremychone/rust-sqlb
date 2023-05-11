@@ -65,28 +65,28 @@ impl<'a> UpdateSqlBuilder<'a> {
 		sqlx_exec::exec(db_pool, self).await
 	}
 
-	pub async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	pub async fn fetch_one<'e, DB, D>(&'a self, db_pool: DB) -> Result<D, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
-		sqlx_exec::fetch_as_one::<D, E, _>(db_pool, self).await
+		sqlx_exec::fetch_as_one::<DB, D, _>(db_pool, self).await
 	}
 
-	pub async fn fetch_optional<'e, D, E>(&'a self, db_pool: E) -> Result<Option<D>, sqlx::Error>
+	pub async fn fetch_optional<'e, DB, D>(&'a self, db_pool: DB) -> Result<Option<D>, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
-		sqlx_exec::fetch_as_optional::<D, E, _>(db_pool, self).await
+		sqlx_exec::fetch_as_optional::<DB, D, _>(db_pool, self).await
 	}
 
-	pub async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	pub async fn fetch_all<'e, DB, D>(&'a self, db_pool: DB) -> Result<Vec<D>, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
-		sqlx_exec::fetch_as_all::<D, E, _>(db_pool, self).await
+		sqlx_exec::fetch_as_all::<DB, D, _>(db_pool, self).await
 	}
 }
 
@@ -170,27 +170,27 @@ impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 		Self::exec(self, db_pool).await
 	}
 
-	async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	async fn fetch_one<'e, DB, D>(&'a self, db_pool: DB) -> Result<D, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
-		Self::fetch_one::<D, E>(self, db_pool).await
+		Self::fetch_one::<DB, D>(self, db_pool).await
 	}
 
-	async fn fetch_optional<'e, D, E>(&'a self, db_pool: E) -> Result<Option<D>, sqlx::Error>
+	async fn fetch_optional<'e, DB, D>(&'a self, db_pool: DB) -> Result<Option<D>, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
-		Self::fetch_optional::<D, E>(self, db_pool).await
+		Self::fetch_optional::<DB, D>(self, db_pool).await
 	}
 
-	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	async fn fetch_all<'e, DB, D>(&'a self, db_pool: DB) -> Result<Vec<D>, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send,
 	{
-		Self::fetch_all::<D, E>(self, db_pool).await
+		Self::fetch_all::<DB, D>(self, db_pool).await
 	}
 }

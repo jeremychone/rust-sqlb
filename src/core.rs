@@ -87,24 +87,24 @@ pub trait SqlBuilder<'a> {
 	fn sql(&self) -> String;
 	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send>;
 
-	async fn fetch_one<'e, D, E>(&'a self, db_pool: E) -> Result<D, sqlx::Error>
+	async fn fetch_one<'e, DB, D>(&'a self, db_pool: DB) -> Result<D, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
 
-	async fn fetch_optional<'e, D, E>(&'a self, db_pool: E) -> Result<Option<D>, sqlx::Error>
+	async fn fetch_optional<'e, DB, D>(&'a self, db_pool: DB) -> Result<Option<D>, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
 
-	async fn fetch_all<'e, D, E>(&'a self, db_pool: E) -> Result<Vec<D>, sqlx::Error>
+	async fn fetch_all<'e, DB, D>(&'a self, db_pool: DB) -> Result<Vec<D>, sqlx::Error>
 	where
-		E: Executor<'e, Database = Postgres>,
+		DB: Executor<'e, Database = Postgres>,
 		D: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Unpin + Send;
 
-	async fn exec<'q, E>(&'a self, db_pool: E) -> Result<u64, sqlx::Error>
+	async fn exec<'q, DB>(&'a self, db_pool: DB) -> Result<u64, sqlx::Error>
 	where
-		E: Executor<'q, Database = Postgres>;
+		DB: Executor<'q, Database = Postgres>;
 }
 
 pub trait Whereable<'a> {

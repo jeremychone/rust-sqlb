@@ -49,7 +49,7 @@ async fn sb_enum_insert_() -> Result<(), Box<dyn Error>> {
 	// DO the insert
 	let data: Vec<Field> = vec![("title", title_1).into(), ("status", TodoStatus::Open).into()];
 	let sb = sqlb::insert().table("todo").data(data).returning(&["id", "title", "status"]);
-	let (id_1, title, status) = sb.fetch_one::<(i64, String, TodoStatus), _>(&db_pool).await?;
+	let (id_1, title, status) = sb.fetch_one::<_, (i64, String, TodoStatus)>(&db_pool).await?;
 
 	// CHECK the insert
 	assert_eq!(title_1, title);
@@ -60,7 +60,7 @@ async fn sb_enum_insert_() -> Result<(), Box<dyn Error>> {
 		.table("todo")
 		.columns(&["id", "title", "status"])
 		.and_where_eq("id", id_1);
-	let (id, title, status) = sb.fetch_one::<(i64, String, TodoStatus), _>(&db_pool).await?;
+	let (id, title, status) = sb.fetch_one::<_, (i64, String, TodoStatus)>(&db_pool).await?;
 
 	// CHECK the insert
 	assert_eq!(id_1, id);

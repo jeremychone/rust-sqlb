@@ -19,7 +19,7 @@ async fn macro_test_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 	// DO insert
 	let sb = sqlb::insert().table("todo").data(todo.fields());
 	let sb = sb.returning(&["id", "title", "desc"]);
-	let (_id, title, desc) = fetch_as_one::<(i64, String, String), _, _>(&db_pool, &sb).await?;
+	let (_id, title, desc) = fetch_as_one::<_, (i64, String, String), _>(&db_pool, &sb).await?;
 
 	// CHECK title and desc
 	assert_eq!(&fix_title, &title);
@@ -43,7 +43,7 @@ async fn macro_test_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
 	// DO insert
 	let sb = sqlb::insert().table("todo").data(todo.fields());
 	let sb = sb.returning(&["id", "title", "desc"]);
-	let (_id, title, _) = fetch_as_one::<(i64, String, Option<String>), _, _>(&db_pool, &sb).await?;
+	let (_id, title, _) = fetch_as_one::<_, (i64, String, Option<String>), _>(&db_pool, &sb).await?;
 
 	// CHECK title and desc
 	assert_eq!(&fix_title, &title);

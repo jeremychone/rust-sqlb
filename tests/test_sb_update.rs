@@ -125,7 +125,7 @@ async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 	let fields = vec![("title", test_title_new).into()];
 	let sb = sqlb::update().table("todo").data(fields).and_where("id", "=", todo_id_1);
 	let sb = sb.returning(&["id", "title"]);
-	let (returned_todo_1_id, returned_todo_1_title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
+	let (returned_todo_1_id, returned_todo_1_title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 
 	// CHECK return values
 	assert_eq!(todo_id_1, returned_todo_1_id);
@@ -150,7 +150,7 @@ async fn sb_update_raw() -> Result<(), Box<dyn Error>> {
 	let fields: Vec<Field> = vec![("title", test_title_new).into(), ("ctime", Raw("now()")).into()];
 	let sb = sqlb::update().table("todo").data(fields).and_where_eq("id", todo_id_1);
 	let sb = sb.returning(&["id", "title", "ctime"]);
-	let (id, title, _ctime) = sb.fetch_one::<(i64, String, OffsetDateTime), _>(&db_pool).await?;
+	let (id, title, _ctime) = sb.fetch_one::<_, (i64, String, OffsetDateTime)>(&db_pool).await?;
 
 	// CHECK
 	assert_eq!(test_title_new, title);

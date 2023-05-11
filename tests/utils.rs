@@ -37,7 +37,7 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 
 	let sb = sqlb::insert().table("todo").data(patch_data.fields());
 	let sb = sb.returning(&["id"]);
-	let (id,) = sb.fetch_one::<(i64,), _>(db_pool).await?;
+	let (id,) = sb.fetch_one::<_, (i64,)>(db_pool).await?;
 
 	Ok(id)
 }
@@ -45,14 +45,14 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 #[allow(unused)]
 pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>, Box<dyn Error>> {
 	let sb = sqlb::select().table("todo").columns(&["id", "title"]).order_by("!id");
-	let todos = sb.fetch_all::<Todo, _>(db_pool).await?;
+	let todos = sb.fetch_all::<_, Todo>(db_pool).await?;
 	Ok(todos)
 }
 
 #[allow(unused)]
 pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo, Box<dyn Error>> {
 	let sb = sqlb::select().table("todo").columns(&["id", "title"]).and_where("id", "=", id);
-	let todos = sb.fetch_one::<Todo, _>(db_pool).await?;
+	let todos = sb.fetch_one::<_, Todo>(db_pool).await?;
 	Ok(todos)
 }
 // endregion: Test Seed Utils

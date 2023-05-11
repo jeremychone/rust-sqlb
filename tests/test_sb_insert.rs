@@ -17,7 +17,7 @@ async fn sb_insert() -> Result<(), Box<dyn Error>> {
 	// DO insert
 	let sb = sqlb::insert().table("todo").data(patch_data.fields());
 	let sb = sb.returning(&["id", "title"]);
-	let (_id, title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
+	let (_id, title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 	assert_eq!(test_title, title);
 
 	// CHECK with select all
@@ -40,7 +40,7 @@ async fn sb_insert_raw() -> Result<(), Box<dyn Error>> {
 
 	let sb = sqlb::insert().table("todo").data(fields);
 	let sb = sb.returning(&["id", "title", "ctime"]);
-	let (_id, title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
+	let (_id, title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 	assert_eq!(test_title, title);
 
 	// CHECK

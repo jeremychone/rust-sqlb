@@ -57,7 +57,7 @@ async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
 	// DO delete
 	let sb = sqlb::delete().table("todo").and_where("id", "=", todo_id_1);
 	let sb = sb.returning(&["id", "title"]);
-	let (deleted_todo_1_id, deleted_todo_1_title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
+	let (deleted_todo_1_id, deleted_todo_1_title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 
 	// CHECK deleted returns
 	assert_eq!(test_title_1, deleted_todo_1_title);
