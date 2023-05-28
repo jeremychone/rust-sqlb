@@ -67,9 +67,9 @@ docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:1
 # In terminal 2 - (optional) launch psql on the Postgres instance above
 docker exec -it -u postgres pg psql
 
-# In terminal 3 - MUST run with `--test-threads=1` to avoid database access conflicts
-cargo test -- --test-threads=1
+# In terminal 3 -
+cargo test
 
 # or watch a particular test target
-cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
+cargo watch -q -c -x 'test --test test_sb_insert
 ```

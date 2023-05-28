@@ -1,9 +1,11 @@
 mod utils;
 
+use serial_test::serial;
 use sqlb::sqlx_exec;
 use std::error::Error;
 use utils::init_db;
 
+#[serial]
 #[tokio::test]
 async fn sb_transaction_simple() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;

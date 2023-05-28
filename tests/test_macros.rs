@@ -1,9 +1,11 @@
 mod utils;
 
+use serial_test::serial;
 use sqlb::sqlx_exec::fetch_as_one;
 use sqlb::{Fields, HasFields};
 use utils::init_db;
 
+#[serial]
 #[tokio::test]
 async fn macro_test_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 	let db_pool = init_db().await?;
@@ -28,6 +30,7 @@ async fn macro_test_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn macro_test_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
 	let db_pool = init_db().await?;

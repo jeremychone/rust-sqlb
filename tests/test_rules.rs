@@ -1,5 +1,6 @@
 mod utils;
 
+use serial_test::serial;
 use sqlb::{bindable, Field};
 use std::error::Error;
 use utils::init_db;
@@ -18,6 +19,7 @@ pub enum TodoStatus {
 bindable!(TodoStatus);
 
 // NOTE: This test is just about passing the compile time
+#[serial]
 #[tokio::test]
 async fn test_rules_custom_enum() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;

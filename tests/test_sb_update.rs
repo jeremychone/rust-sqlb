@@ -6,6 +6,7 @@ use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, util_insert_todo};
 
 use crate::utils::util_fetch_todo;
+use serial_test::serial;
 
 #[test]
 #[should_panic]
@@ -22,6 +23,7 @@ fn sb_update_all_sql_ok() {
 	// should pass
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -49,6 +51,7 @@ async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -78,6 +81,7 @@ async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_update_exec_with_wheres() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -110,6 +114,7 @@ async fn sb_update_exec_with_wheres() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -138,6 +143,7 @@ async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_update_raw() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;

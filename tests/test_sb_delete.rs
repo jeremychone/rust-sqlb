@@ -5,6 +5,7 @@ use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, util_insert_todo};
 
 use crate::utils::Todo;
+use serial_test::serial;
 
 #[test]
 #[should_panic]
@@ -21,6 +22,7 @@ fn sb_delete_all_ok() {
 	// should pass
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_delete_exec() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -44,6 +46,7 @@ async fn sb_delete_exec() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -71,6 +74,7 @@ async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_delete_return_many() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;

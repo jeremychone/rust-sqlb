@@ -1,5 +1,6 @@
 mod utils;
 
+use serial_test::serial;
 use sqlb::{Field, SqlxBindable};
 use sqlx::{postgres::PgArguments, query::Query, Postgres};
 use std::error::Error;
@@ -26,6 +27,7 @@ impl SqlxBindable for TodoStatus {
 // endregion: Custom Type (enum)
 
 // This is to test that the type above was undestood by Sqlx
+#[serial]
 #[tokio::test]
 async fn sb_enum_sqlx_raw_bind() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -38,8 +40,9 @@ async fn sb_enum_sqlx_raw_bind() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
-async fn sb_enum_insert_() -> Result<(), Box<dyn Error>> {
+async fn sb_enum_insert() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// fixtures

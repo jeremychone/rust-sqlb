@@ -1,9 +1,11 @@
 mod utils;
 
+use serial_test::serial;
 use sqlb::{Field, HasFields, Raw};
 use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, TodoPatch};
 
+#[serial]
 #[tokio::test]
 async fn sb_insert() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
@@ -28,6 +30,7 @@ async fn sb_insert() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+#[serial]
 #[tokio::test]
 async fn sb_insert_raw() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
