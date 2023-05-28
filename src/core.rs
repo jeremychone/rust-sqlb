@@ -25,8 +25,18 @@ impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
 	}
 }
 
+/// Impleme that this struct have "fields" that can be expressed as
+/// `(name, value)` vector.
+/// Typically implemented with `#[derive(Fields)]`
 pub trait HasFields {
-	fn fields(&self) -> Vec<Field>;
+	/// Returns the `Field(name, value)` where the value is a not none `SqlxBindable`.
+	fn not_none_fields(&self) -> Vec<Field>;
+
+	/// Returns the `Field(name, value)` where the value is a `SqlxBindable`.
+	fn all_fields(&self) -> Vec<Field>;
+
+	/// Return the array of all field names this struct has.
+	fn field_names() -> &'static [&'static str];
 }
 
 // region:    Common Types

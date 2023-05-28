@@ -15,12 +15,23 @@ pub struct TodoPatch {
 }
 
 impl HasFields for TodoPatch {
-	fn fields(&self) -> Vec<Field> {
+	fn not_none_fields(&self) -> Vec<Field> {
 		let mut fields = Vec::new();
 		if let Some(title) = &self.title {
 			fields.push(("title", title).into());
 		}
 		fields
+	}
+
+	#[allow(clippy::vec_init_then_push)]
+	fn all_fields(&self) -> Vec<Field> {
+		let mut fields: Vec<Field> = Vec::new();
+		fields.push(("title", self.title.clone()).into());
+		fields
+	}
+
+	fn field_names() -> &'static [&'static str] {
+		&["title"]
 	}
 }
 // endregion: Test Types
@@ -35,7 +46,7 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 		title: Some(title.to_string()),
 	};
 
-	let sb = sqlb::insert().table("todo").data(patch_data.fields());
+	let sb = sqlb::insert().table("todo").data(patch_data.not_none_fields());
 	let sb = sb.returning(&["id"]);
 	let (id,) = sb.fetch_one::<_, (i64,)>(db_pool).await?;
 

@@ -19,7 +19,7 @@ async fn sb_macro_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 	};
 
 	// DO insert
-	let sb = sqlb::insert().table("todo").data(todo.fields());
+	let sb = sqlb::insert().table("todo").data(todo.not_none_fields());
 	let sb = sb.returning(&["id", "title", "desc"]);
 	let (_id, title, desc) = fetch_as_one::<_, (i64, String, String), _>(&db_pool, &sb).await?;
 
@@ -44,7 +44,7 @@ async fn sb_macro_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
 	};
 
 	// DO insert
-	let sb = sqlb::insert().table("todo").data(todo.fields());
+	let sb = sqlb::insert().table("todo").data(todo.not_none_fields());
 	let sb = sb.returning(&["id", "title", "desc"]);
 	let (_id, title, _) = fetch_as_one::<_, (i64, String, Option<String>), _>(&db_pool, &sb).await?;
 

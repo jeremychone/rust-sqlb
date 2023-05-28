@@ -7,7 +7,7 @@ use utils::{init_db, util_fetch_all_todos, TodoPatch};
 
 #[serial]
 #[tokio::test]
-async fn sb_insert() -> Result<(), Box<dyn Error>> {
+async fn sb_insert_todo_patch() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -17,7 +17,7 @@ async fn sb_insert() -> Result<(), Box<dyn Error>> {
 	};
 
 	// DO insert
-	let sb = sqlb::insert().table("todo").data(patch_data.fields());
+	let sb = sqlb::insert().table("todo").data(patch_data.not_none_fields());
 	let sb = sb.returning(&["id", "title"]);
 	let (_id, title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 	assert_eq!(test_title, title);
