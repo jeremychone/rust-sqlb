@@ -7,12 +7,12 @@ use utils::init_db;
 
 #[serial]
 #[tokio::test]
-async fn macro_test_insert_full() -> Result<(), Box<dyn std::error::Error>> {
+async fn sb_macro_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
-	let fix_title = "macro_test_insert_full title".to_string();
-	let fix_desc = "macro_test_insert_full desc".to_string();
+	let fix_title = "sb_macro_insert_full title".to_string();
+	let fix_desc = "sb_macro_insert_full desc".to_string();
 	let todo = TodoCreate {
 		title: fix_title.clone(),
 		desc: Some(fix_desc.clone()),
@@ -32,11 +32,11 @@ async fn macro_test_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 
 #[serial]
 #[tokio::test]
-async fn macro_test_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
+async fn sb_macro_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
-	let fix_title = "macro_test_insert_partial title".to_string();
+	let fix_title = "sb_macro_insert_partial title".to_string();
 	let fix_desc: Option<String> = None;
 	let todo = TodoCreate {
 		title: fix_title.clone(),
