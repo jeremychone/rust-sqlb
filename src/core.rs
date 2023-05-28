@@ -16,6 +16,7 @@ use sqlx::Executor;
 use sqlx::FromRow;
 use sqlx::Postgres;
 
+#[derive(Debug)]
 pub struct Field<'a>(pub String, pub Box<dyn SqlxBindable + 'a + Send + Sync>);
 
 impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {

@@ -1,7 +1,7 @@
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-pub trait SqlxBindable {
+pub trait SqlxBindable: std::fmt::Debug {
 	fn bind_query<'q>(
 		&self,
 		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -63,6 +63,7 @@ bindable!(Uuid, OffsetDateTime);
 
 // region:    --- Raw Value
 
+#[derive(Debug)]
 pub struct Raw(pub &'static str);
 
 impl SqlxBindable for Raw {
