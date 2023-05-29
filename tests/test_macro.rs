@@ -12,7 +12,7 @@ pub fn test_macro_field_names() -> Result<()> {
 		desc: Option<String>,
 		name: String,
 
-		#[skip_field]
+		#[field(skip)]
 		something_else: String,
 	}
 

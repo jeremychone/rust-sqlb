@@ -6,7 +6,7 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, DeriveInput, Ident};
 
-#[proc_macro_derive(Fields, attributes(skip_field))]
+#[proc_macro_derive(Fields, attributes(field))]
 pub fn derives_fields(input: TokenStream) -> TokenStream {
 	let ast = parse_macro_input!(input as DeriveInput);
 	let struct_name = ast.ident;
@@ -27,8 +27,12 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 	let mut props_optional: Vec<&Option<Ident>> = Vec::new();
 	let mut props_not_optional: Vec<&Option<Ident>> = Vec::new();
 	for field in fields.named.iter() {
-		// skip if #[skip_field]
-		if utils::get_attribute(field, "skip_field").is_some() {
+		let field_attr = utils::get_field_attr(field);
+
+		// TODO: Need to check better handling.
+		let field_attr = field_attr.unwrap();
+
+		if field_attr.skip {
 			continue;
 		}
 

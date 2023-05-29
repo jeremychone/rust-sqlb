@@ -36,9 +36,10 @@ pub struct Todo {
     id: i64,
 
     title: String,
+	#[field(name=description)]
 	desc: Option<String>,
 
-	#[skip_field]
+	#[field(skip)]
 	someting_else: String,
 }
 
