@@ -49,14 +49,14 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 	// -- Vec push code for the (name, value)
 	let ff_pushes = quote! {
 		#(
-			ff.push((stringify!(#props_not_optional), self.#props_not_optional.clone()).into());
+			ff.push((stringify!(#props_not_optional), self.#props_not_optional).into());
 		)*
 	};
 
 	let ff_not_none_pushes = quote! {
 		#(
-			if let Some(val) = &self.#props_optional {
-				ff.push((stringify!(#props_optional), val.clone()).into());
+			if let Some(val) = self.#props_optional {
+				ff.push((stringify!(#props_optional), val).into());
 			}
 		)*
 	};
@@ -65,14 +65,14 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 	let output = quote! {
 		impl sqlb::HasFields for #struct_name {
 
-			fn not_none_fields(&self) -> Vec<sqlb::Field> {
+			fn not_none_fields<'a>(self) -> Vec<sqlb::Field<'a>> {
 				let mut ff: Vec<sqlb::Field> = Vec::new();
 				#ff_pushes
 				#ff_not_none_pushes
 				ff
 			}
 
-			fn all_fields(&self) -> Vec<sqlb::Field> {
+			fn all_fields<'a>(self) -> Vec<sqlb::Field<'a>> {
 				let mut ff: Vec<sqlb::Field> = Vec::new();
 				#ff_pushes
 				#ff_not_none_pushes

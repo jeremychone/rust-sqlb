@@ -1,5 +1,6 @@
 **sqlb** is a simple and expressive SQLBuilder for Rust for [sqlx](https://crates.io/crates/sqlx) focused on PostgreSQL (for now). 
 
+
 - **Simple** - Focused on providing an expressive, composable, and reasonably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
 	- **NOT** a database **executor/driver** (Will be using [sqlx](https://crates.io/crates/sqlx) as sql executore)
 	- **NOT** an **ORM**, just a sql builder. 
@@ -10,8 +11,9 @@
 	- **PostgreSQL** - First database support will be Postgres (via sqlx). Additional database support may be added based on interest and pull requests.
 - **Prepared Statement ONLY!**	
 
+> WARNING: During the `0.y.z` period API might change on the `.y`. `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly would be a good approach for high-batch insert operations.
 
-> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller -). Even when using ORMs, it is often a good code design to wrap those access via some data access layers. 
+> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
 
 
 Goals for first **0.x.x** releases: 
@@ -73,15 +75,21 @@ let row_affected = sb.exec(&db_pool).await?;
 // will not update .title because of the use of `.not_none_fields()`. 
 ```
 
-## Latest Breaking Changes
+## Latest Major Changes
 
-- `0.3.0` 
-	- `!` CHANGE - `HasFields.fields` has been rename to `HasFields.not_none_fields()`.
+`!` breaking change, `+` addition, `-` fix.
+
+- `0.3.1` 
+	- `!` BREAKING CHANGE - `HasFields.fields` has been rename to `HasFields.not_none_fields()`.
+	- `!` BREAKING CHANGE - `HasFields.not_none_fields()` and `HasFields.all_fields()` consume the `self` (to avoid uncessary clone).
 	- `+` - `HasFields.all_fields()` - returns all fields (even the one where value are None).
 	- `+` - `HasFields::field_names(): &'static [&'static]` - list of field names (i.e., column names).
 	- `+` - Added `SqlxBindable` for the `Option<T>` (not a blanket impl at this point).
-- `0.2.0` - Changing the generic order to match `sqlx`. From `.fetch_one::<(i64, String), _>` to `.fetch_one::<_, (i64, String)>`
-- `0.0.7` - `sqlb::insert().table("todo")` (in 0.0.7) rather than `sqlb::insert("toto")` (<=0.0.6) (for all SqlBuilders)
+	- `0.3.0` been deprecated since did not have the `...fields(self)` behavior. 
+- `0.2.0` 
+	- Changing the generic order to match `sqlx`. From `.fetch_one::<(i64, String), _>` to `.fetch_one::<_, (i64, String)>`
+- `0.0.7` 
+	- `sqlb::insert().table("todo")` (in 0.0.7) rather than `sqlb::insert("toto")` (<=0.0.6) (for all SqlBuilders)
 
 
 ## For sqlb Dev
