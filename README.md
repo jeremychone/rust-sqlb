@@ -2,16 +2,18 @@
 
 
 - **Simple** - Focused on providing an expressive, composable, and reasonably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
-	- **NOT** a database **executor/driver** (Will be using [sqlx](https://crates.io/crates/sqlx) as sql executore)
-	- **NOT** an **ORM**, just a sql builder. 
+	- **NOT** a database **executor/driver** (Uses [sqlx](https://crates.io/crates/sqlx) as sql executore)
+	- **NOT** an **ORM**, just a sql builder.
 	- **NOT** a full replacement for [sqlx](https://crates.io/crates/sqlx). Dropping into sqlx when sqlb is too limiting is a valid pattern.
 - **Expressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
 - **Focused** 
 	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
 	- **PostgreSQL** - First database support will be Postgres (via sqlx). Additional database support may be added based on interest and pull requests.
+- `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly for high bach commands or more advanced usecases is an encouraged approach. 
 - **Prepared Statement ONLY!**	
 
-> WARNING: During the `0.y.z` period API might change on the `.y`. `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly would be a good approach for high-batch insert operations.
+
+> WARNING: During the `0.y.z` period API changes will result in `.y` increments. 
 
 > NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
 
@@ -36,7 +38,7 @@ pub struct Todo {
     id: i64,
 
     title: String,
-	#[field(name=description)]
+	#[field(name="description")]
 	desc: Option<String>,
 
 	#[field(skip)]
@@ -48,7 +50,7 @@ pub struct TodoForCreate {
 	title: String,
 	desc: Option<String>,
 
-	#[skip_field]
+	#[field(skip)]
 	someting_else: String,	
 }
 
@@ -57,6 +59,10 @@ pub struct TodoForUpdate {
 	title: Option<String>,
 	desc: Option<String>,
 }
+
+// -- Get the field names
+let field_names = Todo::field_names();
+// ["id", "title", "description"]
 
 // -- Create new row
 let todo_c = TodoForCreate { title: "title 01".to_string(), desc: "desc 01".to_string() };

@@ -3,7 +3,7 @@ mod utils;
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Ident};
 
 #[proc_macro_derive(Fields, attributes(field))]
@@ -11,7 +11,7 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 	let ast = parse_macro_input!(input as DeriveInput);
 	let struct_name = ast.ident;
 
-	//// get the fields
+	// -- get the fields
 	let fields = if let syn::Data::Struct(syn::DataStruct {
 		fields: syn::Fields::Named(ref fields),
 		..
@@ -22,45 +22,35 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 		panic!("Only support Struct")
 	};
 
-	// -- Collect properties and the Option<..> properties
-	let mut props_all: Vec<&Option<Ident>> = Vec::new();
-	let mut props_optional: Vec<&Option<Ident>> = Vec::new();
-	let mut props_not_optional: Vec<&Option<Ident>> = Vec::new();
-	for field in fields.named.iter() {
-		let field_attr = utils::get_field_attr(field);
+	// -- Collect Elements
+	let props = utils::get_props(fields);
 
-		// TODO: Need to check better handling.
-		let field_attr = field_attr.unwrap();
+	let props_all_idents: Vec<&Option<Ident>> = props.iter().map(|p| p.ident).collect();
+	let props_all_names: Vec<&String> = props.iter().map(|p| &p.name).collect();
 
-		if field_attr.skip {
-			continue;
-		}
+	let props_option_idents: Vec<&Option<Ident>> = props.iter().filter(|p| p.is_option).map(|p| p.ident).collect();
+	let props_option_names: Vec<&String> = props.iter().filter(|p| p.is_option).map(|p| &p.name).collect();
 
-		// NOTE: By macro limitation, we can do only type name match and it would not support type alias
-		//       For now, assume Option is used as is or type name contains it.
-		//       We can add other variants of Option if proven needed.
-		let type_name = format!("{}", &field.ty.to_token_stream());
-
-		props_all.push(&field.ident);
-
-		if type_name.contains("Option ") {
-			props_optional.push(&field.ident);
-		} else {
-			props_not_optional.push(&field.ident);
-		}
-	}
+	let props_not_option_idents: Vec<&Option<Ident>> = props.iter().filter(|p| !p.is_option).map(|p| p.ident).collect();
+	let props_not_option_names: Vec<&String> = props.iter().filter(|p| !p.is_option).map(|p| &p.name).collect();
 
 	// -- Vec push code for the (name, value)
-	let ff_pushes = quote! {
+	let ff_all_pushes = quote! {
 		#(
-			ff.push((stringify!(#props_not_optional), self.#props_not_optional).into());
+			ff.push((#props_all_names, self.#props_all_idents).into());
 		)*
 	};
 
-	let ff_not_none_pushes = quote! {
+	let ff_not_option_pushes = quote! {
 		#(
-			if let Some(val) = self.#props_optional {
-				ff.push((stringify!(#props_optional), val).into());
+			ff.push((#props_not_option_names, self.#props_not_option_idents).into());
+		)*
+	};
+
+	let ff_option_not_none_pushes = quote! {
+		#(
+			if let Some(val) = self.#props_option_idents {
+				ff.push((#props_option_names, val).into());
 			}
 		)*
 	};
@@ -69,23 +59,22 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 	let output = quote! {
 		impl sqlb::HasFields for #struct_name {
 
-			fn not_none_fields<'a>(self) -> Vec<sqlb::Field<'a>> {
+			fn not_none_fields<'a>( self) -> Vec<sqlb::Field<'a>> {
 				let mut ff: Vec<sqlb::Field> = Vec::new();
-				#ff_pushes
-				#ff_not_none_pushes
+				#ff_not_option_pushes
+				#ff_option_not_none_pushes
 				ff
 			}
 
-			fn all_fields<'a>(self) -> Vec<sqlb::Field<'a>> {
+			fn all_fields<'a>( self) -> Vec<sqlb::Field<'a>> {
 				let mut ff: Vec<sqlb::Field> = Vec::new();
-				#ff_pushes
-				#ff_not_none_pushes
+				#ff_all_pushes
 				ff
 			}
 
 			fn field_names() -> &'static [&'static str] {
 				&[#(
-					stringify!(#props_all),
+				#props_all_names,
 				)*]
 			}
 		}
