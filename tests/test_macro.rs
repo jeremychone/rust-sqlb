@@ -9,6 +9,7 @@ pub fn test_macro_field_names() -> Result<()> {
 	struct Todo {
 		id: i64,
 
+		#[field(name=description)]
 		desc: Option<String>,
 		name: String,
 
@@ -18,7 +19,7 @@ pub fn test_macro_field_names() -> Result<()> {
 
 	let field_names = Todo::field_names();
 
-	assert_eq!(field_names, &["id", "desc", "name"]);
+	assert_eq!(field_names, &["id", "description", "name"]);
 
 	Ok(())
 }

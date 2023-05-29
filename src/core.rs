@@ -17,11 +17,26 @@ use sqlx::FromRow;
 use sqlx::Postgres;
 
 #[derive(Debug)]
-pub struct Field<'a>(pub String, pub Box<dyn SqlxBindable + 'a + Send + Sync>);
+pub struct Field<'a> {
+	pub name: String,
+	pub value: Box<dyn SqlxBindable + 'a + Send + Sync>,
+}
 
 impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(&str, T)> for Field<'a> {
 	fn from((name, value): (&str, T)) -> Self {
-		Field(name.to_owned(), Box::new(value))
+		Field {
+			name: name.to_owned(),
+			value: Box::new(value),
+		}
+	}
+}
+
+impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(String, T)> for Field<'a> {
+	fn from((name, value): (String, T)) -> Self {
+		Field {
+			name,
+			value: Box::new(value),
+		}
 	}
 }
 
@@ -159,7 +174,7 @@ pub(crate) fn x_name(name: &str) -> String {
 pub(crate) fn sql_comma_names(fields: &[Field]) -> String {
 	fields
 		.iter()
-		.map(|Field(name, _)| x_name(name))
+		.map(|Field { name, .. }| x_name(name))
 		.collect::<Vec<String>>()
 		.join(", ")
 }
@@ -169,11 +184,11 @@ pub(crate) fn sql_comma_params(fields: &[Field]) -> (i32, String) {
 	let mut vals = String::new();
 	let mut binding_idx = 1;
 
-	for (idx, Field(_, val)) in fields.iter().enumerate() {
+	for (idx, Field { value, .. }) in fields.iter().enumerate() {
 		if idx > 0 {
 			vals.push_str(", ");
 		};
-		match val.raw() {
+		match value.raw() {
 			None => {
 				vals.push_str(&format!("${}", binding_idx));
 				binding_idx += 1;

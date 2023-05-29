@@ -125,8 +125,8 @@ impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 			.iter()
 			.enumerate()
 			.map(|(_, f)| {
-				let mut part = format!("{} = ", x_name(&f.0));
-				match f.1.raw() {
+				let mut part = format!("{} = ", x_name(&f.name));
+				match f.value.raw() {
 					None => {
 						part.push_str(&format!("${}", binding_idx));
 						binding_idx += 1;
@@ -157,7 +157,7 @@ impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 	}
 
 	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
-		let iter = self.data.iter().map(|field| &field.1);
+		let iter = self.data.iter().map(|field| &field.value);
 		// FIXME needs to uncomment
 		let iter = iter.chain(self.and_wheres.iter().map(|wi| &wi.val));
 		Box::new(iter)

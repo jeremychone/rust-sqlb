@@ -95,7 +95,7 @@ impl<'a> SqlBuilder<'a> for InsertSqlBuilder<'a> {
 	}
 
 	fn vals(&'a self) -> Box<dyn Iterator<Item = &Box<dyn SqlxBindable + 'a + Send + Sync>> + 'a + Send> {
-		let iter = self.data.iter().map(|field| &field.1);
+		let iter = self.data.iter().map(|field| &field.value);
 		Box::new(iter)
 	}
 

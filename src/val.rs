@@ -145,19 +145,19 @@ mod tests {
 	#[test]
 	fn field_from_str() {
 		let field = Field::from(("name1", "v2"));
-		assert_eq!("name1", field.0);
+		assert_eq!("name1", field.name);
 
 		let field: Field = ("name1", "v2").into();
-		assert_eq!("name1", field.0);
+		assert_eq!("name1", field.name);
 	}
 
 	#[test]
 	fn field_from_string() {
 		let field = Field::from(("name1", "v1"));
-		assert_eq!("name1", field.0);
+		assert_eq!("name1", field.name);
 
 		let v2 = &"v2".to_string();
 		let field: Field = ("name2", v2).into();
-		assert_eq!("name2", field.0);
+		assert_eq!("name2", field.name);
 	}
 }
