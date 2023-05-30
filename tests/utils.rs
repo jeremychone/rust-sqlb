@@ -6,36 +6,43 @@ use sqlb::{Field, HasFields};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 // region:    Test Types
-#[derive(sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow)]
 pub struct Todo {
 	pub id: i64,
 	pub title: String,
+	#[sqlx(rename = "description")]
+	pub desc: Option<String>,
 }
 
+#[derive(Debug, sqlb::Fields)]
 pub struct TodoPatch {
 	pub title: Option<String>,
+	#[field(name = "description")]
+	pub desc: Option<String>,
 }
 
-impl HasFields for TodoPatch {
-	fn not_none_fields<'a>(self) -> Vec<Field<'a>> {
-		let mut fields = Vec::new();
-		if let Some(title) = self.title {
-			fields.push(("title", title).into());
-		}
-		fields
-	}
+// -- Manual implementation
+// impl HasFields for TodoPatch {
+// 	fn not_none_fields<'a>(self) -> Vec<Field<'a>> {
+// 		let mut fields = Vec::new();
+// 		if let Some(title) = self.title {
+// 			fields.push(("title", title).into());
+// 		}
+// 		fields
+// 	}
 
-	#[allow(clippy::vec_init_then_push)]
-	fn all_fields<'a>(self) -> Vec<Field<'a>> {
-		let mut fields: Vec<Field> = Vec::new();
-		fields.push(("title", self.title).into());
-		fields
-	}
+// 	#[allow(clippy::vec_init_then_push)]
+// 	fn all_fields<'a>(self) -> Vec<Field<'a>> {
+// 		let mut fields: Vec<Field> = Vec::new();
+// 		fields.push(("title", self.title).into());
+// 		fields
+// 	}
 
-	fn field_names() -> &'static [&'static str] {
-		&["title"]
-	}
-}
+// 	fn field_names() -> &'static [&'static str] {
+// 		&["title"]
+// 	}
+// }
+
 // endregion: Test Types
 
 // region:    Test Seed Utils
@@ -43,6 +50,7 @@ impl HasFields for TodoPatch {
 pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i64, Box<dyn Error>> {
 	let patch_data = TodoPatch {
 		title: Some(title.to_string()),
+		desc: None,
 	};
 
 	let sb = sqlb::insert().table("todo").data(patch_data.not_none_fields());
@@ -100,6 +108,7 @@ CREATE TYPE todo_status_enum AS ENUM (
 CREATE TABLE IF NOT EXISTS todo (
   id bigserial,
   title text,
+	description text,
 	ctime timestamp with time zone,
 	"desc" text,
 	status todo_status_enum

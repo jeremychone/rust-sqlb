@@ -68,7 +68,6 @@ pub fn get_prop_attr(field: &Field) -> Result<PropAttr, syn::Error> {
 	if let Some(attribute) = attribute {
 		let nested = attribute.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
 
-		// println!("->> meta {:?}", attribute.meta));
 		for meta in nested {
 			match meta {
 				// #[field(skip)]
