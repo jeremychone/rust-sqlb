@@ -11,15 +11,18 @@ pub fn select<'a>() -> SelectSqlBuilder<'a> {
 		columns: None,
 		and_wheres: Vec::new(),
 		order_bys: None,
+		limit: None,
+		offset: None,
 	}
 }
 
 pub struct SelectSqlBuilder<'a> {
 	table: Option<String>,
 	columns: Option<Vec<String>>,
-	// TODO: needs to support full condition (and/or)
 	and_wheres: Vec<WhereItem<'a>>,
 	order_bys: Option<Vec<OrderItem>>,
+	limit: Option<i64>,
+	offset: Option<i64>,
 }
 
 impl<'a> SelectSqlBuilder<'a> {
@@ -50,6 +53,16 @@ impl<'a> SelectSqlBuilder<'a> {
 
 	pub fn order_by(mut self, odr: &str) -> Self {
 		self.order_bys = Some(vec![odr.into()]);
+		self
+	}
+
+	pub fn limit(mut self, limit: i64) -> Self {
+		self.limit = Some(limit);
+		self
+	}
+
+	pub fn offset(mut self, offset: i64) -> Self {
+		self.offset = Some(offset);
 		self
 	}
 
@@ -132,6 +145,16 @@ impl<'a> SqlBuilder<'a> for SelectSqlBuilder<'a> {
 				.collect::<Vec<String>>()
 				.join(", ");
 			sql.push_str(&format!("ORDER BY {} ", sql_order_bys))
+		}
+
+		// SQL: LIMIT
+		if let Some(limit) = &self.limit {
+			sql.push_str(&format!("LIMIT {limit} "))
+		}
+
+		// SQL: OFFSET
+		if let Some(offset) = &self.offset {
+			sql.push_str(&format!("OFFSET {offset} "))
 		}
 
 		sql
