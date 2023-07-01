@@ -105,7 +105,7 @@ Start a PostgreSQL
 
 ```sh
 # In terminal 1 - start postges
-docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:14
+docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:15
 
 # In terminal 2 - (optional) launch psql on the Postgres instance above
 docker exec -it -u postgres pg psql
@@ -116,3 +116,6 @@ cargo test
 # or watch a particular test target
 cargo watch -q -c -x 'test --test test_sb_insert
 ```
+
+<br />
+[sqlb github repo](https://github.com/jeremychone/rust-sqlb)

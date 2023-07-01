@@ -89,7 +89,7 @@ async fn sb_insert_ok_renamed_field_and_get() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_insert_raw() -> Result<(), Box<dyn Error>> {
+async fn sb_insert_ok_raw() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURE

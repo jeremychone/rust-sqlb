@@ -7,7 +7,7 @@ use utils::init_db;
 
 #[serial]
 #[tokio::test]
-async fn sb_transaction_simple() -> Result<(), Box<dyn Error>> {
+async fn sb_transaction_ok_simple() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES

@@ -7,7 +7,7 @@ use utils::init_db;
 
 #[serial]
 #[tokio::test]
-async fn sb_macro_insert_full() -> Result<(), Box<dyn std::error::Error>> {
+async fn sb_macro_ok_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -32,7 +32,7 @@ async fn sb_macro_insert_full() -> Result<(), Box<dyn std::error::Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_macro_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
+async fn sb_macro_ok_insert_partial() -> Result<(), Box<dyn std::error::Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES

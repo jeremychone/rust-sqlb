@@ -10,14 +10,14 @@ use serial_test::serial;
 
 #[test]
 #[should_panic]
-fn sb_update_all_sql_panic() {
+fn sb_update_err_all_sql_panic() {
 	let sb = sqlb::update().table("todo");
 	sb.sql();
 	// should panic
 }
 
 #[test]
-fn sb_update_all_sql_ok() {
+fn sb_update_ok_all_sql() {
 	let sb = sqlb::update_all().table("todo");
 	sb.sql();
 	// should pass
@@ -25,7 +25,7 @@ fn sb_update_all_sql_ok() {
 
 #[serial]
 #[tokio::test]
-async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
+async fn sb_update_ok_exec_all() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -53,7 +53,7 @@ async fn sb_update_all_exec() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
+async fn sb_update_exec_ok_with_where_single() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -83,7 +83,7 @@ async fn sb_update_exec_with_where() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_update_exec_with_wheres() -> Result<(), Box<dyn Error>> {
+async fn sb_update_exec_ok_with_where_many() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -116,7 +116,7 @@ async fn sb_update_exec_with_wheres() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
+async fn sb_update_ok_returning() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -145,7 +145,7 @@ async fn sb_update_returning() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_update_raw() -> Result<(), Box<dyn Error>> {
+async fn sb_update_ok_raw() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURE

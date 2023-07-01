@@ -42,7 +42,7 @@ async fn sb_enum_sqlx_raw_bind() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_enum_insert() -> Result<(), Box<dyn Error>> {
+async fn sb_enum_ok_insert() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// fixtures

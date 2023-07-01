@@ -1,22 +1,24 @@
 mod utils;
 
-use sqlb::SqlBuilder;
+use sqlb::{HasFields, SqlBuilder};
 use std::error::Error;
 use utils::{init_db, util_fetch_all_todos, util_insert_todo};
 
 use crate::utils::Todo;
 use serial_test::serial;
 
+#[serial]
 #[test]
 #[should_panic]
-fn sb_delete_all_panic() {
+fn sb_delete_err_all() {
 	let sb = sqlb::delete().table("todo");
 	sb.sql();
 	// should panic
 }
 
+#[serial]
 #[test]
-fn sb_delete_all_ok() {
+fn sb_delete_ok_all() {
 	let sb = sqlb::delete_all().table("todo");
 	sb.sql();
 	// should pass
@@ -24,7 +26,7 @@ fn sb_delete_all_ok() {
 
 #[serial]
 #[tokio::test]
-async fn sb_delete_exec() -> Result<(), Box<dyn Error>> {
+async fn sb_delete_ok_exec() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -48,7 +50,7 @@ async fn sb_delete_exec() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
+async fn sb_delete_ok_return_one() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -76,7 +78,7 @@ async fn sb_delete_return_one() -> Result<(), Box<dyn Error>> {
 
 #[serial]
 #[tokio::test]
-async fn sb_delete_return_many() -> Result<(), Box<dyn Error>> {
+async fn sb_delete_ok_return_many() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURES
@@ -87,7 +89,7 @@ async fn sb_delete_return_many() -> Result<(), Box<dyn Error>> {
 
 	// DO delete
 	let sb = sqlb::delete().table("todo").and_where("id", ">", 0);
-	let sb = sb.returning(&["id", "title"]);
+	let sb = sb.returning(Todo::field_names());
 
 	let deleted: Vec<Todo> = sb.fetch_all(&db_pool).await?;
 
