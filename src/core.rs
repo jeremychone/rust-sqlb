@@ -164,10 +164,19 @@ pub(crate) fn into_returnings(_base: Option<Vec<String>>, names: &[&str]) -> Opt
 // endregion: property into helpers
 
 // region:    Builder Utils
-/// escape column name
+
+/// Escape column name.
+/// - Surround with `"` if simple column name.
+/// - Leave column name as is if special character `(` (might need to add more)
+///   (this allows function call like `count(*)`)
+///
 /// TODO: needs to handle the . notation (i.e., quote each side of the dot)
 pub(crate) fn x_name(name: &str) -> String {
-	format!("\"{}\"", name)
+	if name.contains('(') {
+		name.to_string()
+	} else {
+		format!("\"{}\"", name)
+	}
 }
 
 // SQL: "name1", "name2", ...
