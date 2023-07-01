@@ -31,8 +31,8 @@ async fn sb_update_ok_exec_all() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let _todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let _todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+	let _todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let _todo_id_2 = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO update
 	let test_title_for_all = "test - new title for all";
@@ -59,8 +59,8 @@ async fn sb_update_exec_ok_with_where_single() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let todo_id_2 = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO update
 	let test_title_for_all = "test - new title";
@@ -89,8 +89,8 @@ async fn sb_update_exec_ok_with_where_many() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let todo_id_2 = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO update
 	let test_title_for_all = "test - new title";
@@ -122,8 +122,8 @@ async fn sb_update_ok_returning() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let todo_id_2 = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO update
 	let test_title_new = "test - new title";
@@ -149,7 +149,7 @@ async fn sb_update_ok_raw() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
 	// FIXTURE
-	let todo_id_1 = util_insert_todo("test_title_1", &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, "test_title_1").await?;
 	let test_title_new = "test - new title";
 
 	// ACTION

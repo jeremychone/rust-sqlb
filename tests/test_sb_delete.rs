@@ -32,8 +32,8 @@ async fn sb_delete_ok_exec() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let _ = util_insert_todo(test_title_2, &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let _ = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO the delete
 	let sb = sqlb::delete().table("todo").and_where("id", "=", todo_id_1);
@@ -56,8 +56,8 @@ async fn sb_delete_ok_return_one() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let _ = util_insert_todo(test_title_2, &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let _ = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO delete
 	let sb = sqlb::delete().table("todo").and_where("id", "=", todo_id_1);
@@ -84,8 +84,8 @@ async fn sb_delete_ok_return_many() -> Result<(), Box<dyn Error>> {
 	// FIXTURES
 	let test_title_1 = "test - title 01";
 	let test_title_2 = "test - title 02";
-	let todo_id_1 = util_insert_todo(test_title_1, &db_pool).await?;
-	let todo_id_2 = util_insert_todo(test_title_2, &db_pool).await?;
+	let todo_id_1 = util_insert_todo(&db_pool, test_title_1).await?;
+	let todo_id_2 = util_insert_todo(&db_pool, test_title_2).await?;
 
 	// DO delete
 	let sb = sqlb::delete().table("todo").and_where("id", ">", 0);

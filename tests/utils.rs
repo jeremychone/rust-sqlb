@@ -1,7 +1,6 @@
 #![allow(unused)]
 
-use std::error::Error;
-
+use anyhow::Result;
 use sqlb::{Field, HasFields};
 use sqlb_macros::Fields;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -49,7 +48,30 @@ pub struct TodoPatch {
 
 // region:    Test Seed Utils
 
-pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i64, Box<dyn Error>> {
+pub async fn util_insert_many_todos(db_pool: &Pool<Postgres>, title_prefix: &str, count: i32) -> Result<Vec<i64>> {
+	let mut ids = Vec::new();
+
+	for idx in 0..count {
+		let title = format!("{title_prefix}-{:0>2}", idx);
+		let id = util_insert_todo(db_pool, &title).await?;
+		ids.push(id);
+	}
+
+	Ok(ids)
+}
+
+pub async fn util_insert_todos(db_pool: &Pool<Postgres>, titles: &[&str]) -> Result<Vec<i64>> {
+	let mut ids = Vec::new();
+
+	for title in titles {
+		let id = util_insert_todo(db_pool, title).await?;
+		ids.push(id);
+	}
+
+	Ok(ids)
+}
+
+pub async fn util_insert_todo(db_pool: &Pool<Postgres>, title: &str) -> Result<i64> {
 	let patch_data = TodoPatch {
 		title: Some(title.to_string()),
 		desc: None,
@@ -62,7 +84,7 @@ pub async fn util_insert_todo(title: &str, db_pool: &Pool<Postgres>) -> Result<i
 	Ok(id)
 }
 
-pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>, Box<dyn Error>> {
+pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>> {
 	let sb = sqlb::select()
 		.table("todo")
 		.columns(&["id", "title", "description"])
@@ -71,7 +93,7 @@ pub async fn util_fetch_all_todos(db_pool: &Pool<Postgres>) -> Result<Vec<Todo>,
 	Ok(todos)
 }
 
-pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo, Box<dyn Error>> {
+pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo> {
 	let sb = sqlb::select()
 		.table("todo")
 		.columns(&["id", "title", "description"])
