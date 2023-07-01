@@ -17,6 +17,7 @@
 
 > NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
 
+> NOTE: sqlb has the feature `runtime-tokio-rustls` enabled by the sqlx crate. Do not enable a conflicting runtime feature when adding sqlx to your project.
 
 Goals for first **0.x.x** releases: 
 
