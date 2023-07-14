@@ -1,6 +1,6 @@
 [package]
 name = "sqlb"
-version = "0.3.4-SNAPSHOT"
+version = "0.3.4"
 authors = ["Jeremy Chone <jeremy.chone@gmail.com>"]
 edition = "2018"
 homepage = "https://github.com/jeremychone/rust-sqlb"
