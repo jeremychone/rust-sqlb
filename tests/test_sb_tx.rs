@@ -17,7 +17,7 @@ async fn sb_transaction_ok_simple() -> Result<(), Box<dyn Error>> {
 	let fields = vec![("title", test_title_1).into()];
 	let sb = sqlb::insert().table("todo").data(fields);
 	let mut db_tx = db_pool.begin().await?;
-	let row_affected = sqlx_exec::exec(&mut db_tx, &sb).await?;
+	let row_affected = sqlx_exec::exec(&mut *db_tx, &sb).await?;
 
 	// CHECK row_affected
 	assert_eq!(1, row_affected, "row_affected");
