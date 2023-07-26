@@ -15,11 +15,13 @@
 
 > WARNING: During the `0.y.z` period API changes will result in `.y` increments. 
 
-> NOTE: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
+> NOTE 1: `sqlb 0.3.x` is designed to work with `sqlx 0.6.x`. Currently, I'm working on `sqlb 0.4.x` for `sqlx 0.7.x`. However, as of `sqlx 0.7.1`, there's an issue affecting some application unit tests where I encounter `Sqlx(PoolTimedOut)` whenever `max_connections` is set to more than one. I'm currently in the process of isolating and investigating this issue. *(Note from July 26, 2023)* See [sqlx issue #2567](https://github.com/launchbadge/sqlx/issues/2567#issuecomment-1652209136).
 
-> NOTE: sqlb has the feature `runtime-tokio-rustls` enabled by the sqlx crate. Do not enable a conflicting runtime feature when adding sqlx to your project.
+> NOTE 2: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
 
-Goals for first **0.x.x** releases: 
+> NOTE 3: sqlb has the feature `runtime-tokio-rustls` enabled by the sqlx crate. Do not enable a conflicting runtime feature when adding sqlx to your project.
+
+Goals for first **0.y.z** releases: 
 
 - **sqlx** - Only plan to be on top of [sqlx](https://crates.io/crates/sqlx).
 - **PostgreSQL** - Focus only on PostgreSQL.
