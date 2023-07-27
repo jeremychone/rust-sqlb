@@ -1,7 +1,7 @@
-//! NOTE:
 //! Currently, `SqlxBindable` represents a value that can be bound.
-//! Eventually, this might change and might follow `sqlx` `Builder` `'args` pattern,
-//! but at this point, the API ergonomic is given priority.
+//! This requires cloning the value. The performance impact should be minimal, and for bulk updates, direct usage of `sqlx` can be preferred.
+//! Eventually, this might change to follow the `'args` pattern of `sqlx` `Builder`,
+//! but at this point, priority is given to API ergonomics.
 //!
 
 use time::OffsetDateTime;
@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 pub trait SqlxBindable: std::fmt::Debug {
 	fn bind_query<'q>(
-		&self,
+		&'q self,
 		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
 	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>;
 
@@ -63,9 +63,14 @@ macro_rules! bindable_to_string {
 // Bind the string types
 bindable_to_string!(String, str);
 
-impl SqlxBindable for Option<String> {
+impl<T> SqlxBindable for Option<T>
+where
+	T: SqlxBindable + Clone + Send,
+	T: for<'r> sqlx::Encode<'r, sqlx::Postgres>,
+	T: sqlx::Type<sqlx::Postgres>,
+{
 	fn bind_query<'q>(
-		&self,
+		&'q self,
 		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
 	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
 		let query = query.bind(self.clone());
@@ -73,50 +78,13 @@ impl SqlxBindable for Option<String> {
 	}
 }
 
-impl SqlxBindable for Option<&String> {
-	fn bind_query<'q>(
-		&self,
-		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
-	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-		let query = query.bind(self.cloned());
-		query
-	}
-}
-
-impl SqlxBindable for Option<&str> {
-	fn bind_query<'q>(
-		&self,
-		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
-	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-		let query = query.bind(self.map(|s| s.to_string()));
-		query
-	}
-}
-
-#[macro_export]
-macro_rules! bindable_option {
-	($($t:ident),*) => {
-		$(impl $crate::SqlxBindable for Option<$t> {
-			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-				let query = query.bind(self.clone());
-				query
-			}
-		}
-
-		)*
-	};
-}
-
 // Bind the boolean
 bindable!(bool);
-bindable_option!(bool);
 // Bind the numbers
 // NOTE: Skipping u8, u16, u64 since not mapped by sqlx to postgres
 bindable!(i8, i16, i32, i64, f32, f64);
-bindable_option!(i8, i16, i32, i64, f32, f64);
 
 bindable!(Uuid, OffsetDateTime);
-bindable_option!(Uuid, OffsetDateTime);
 
 // region:    --- Raw Value
 
