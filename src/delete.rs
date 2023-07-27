@@ -1,5 +1,6 @@
 use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items};
 use crate::core::{WhereItem, Whereable};
+use crate::utils::x_table_name;
 use crate::{sqlx_exec, SqlBuilder, SqlxBindable};
 use async_trait::async_trait;
 use sqlx::{Executor, FromRow, Postgres};
@@ -100,7 +101,7 @@ impl<'a> SqlBuilder<'a> for DeleteSqlBuilder<'a> {
 		let mut sql = String::from("DELETE FROM ");
 
 		if let Some(table) = &self.table {
-			sql.push_str(&format!("\"{}\" ", table));
+			sql.push_str(&x_table_name(table));
 		}
 
 		// SQL: WHERE w1 < $1, ...

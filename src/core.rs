@@ -10,6 +10,7 @@ pub use crate::select::SelectSqlBuilder;
 pub use crate::update::update;
 pub use crate::update::update_all;
 pub use crate::update::UpdateSqlBuilder;
+use crate::utils::x_column_name;
 pub use crate::val::SqlxBindable;
 pub use sqlb_macros::Fields;
 use sqlx::Executor;
@@ -40,7 +41,7 @@ impl<'a, T: 'a + SqlxBindable + Send + Sync> From<(String, T)> for Field<'a> {
 	}
 }
 
-/// Impleme that this struct have "fields" that can be expressed as
+/// Implement that this struct have "fields" that can be expressed as
 /// `(name, value)` vector.
 /// Typically implemented with `#[derive(Fields)]`
 pub trait HasFields {
@@ -88,12 +89,12 @@ impl From<&str> for OrderItem {
 		if let Some(s) = v.strip_prefix('!') {
 			OrderItem {
 				dir: OrderDir::Desc,
-				name: x_name(s),
+				name: x_column_name(s),
 			}
 		} else {
 			OrderItem {
 				dir: OrderDir::Asc,
-				name: x_name(v),
+				name: x_column_name(v),
 			}
 		}
 	}
@@ -165,25 +166,11 @@ pub(crate) fn into_returnings(_base: Option<Vec<String>>, names: &[&str]) -> Opt
 
 // region:    Builder Utils
 
-/// Escape column name.
-/// - Surround with `"` if simple column name.
-/// - Leave column name as is if special character `(` (might need to add more)
-///   (this allows function call like `count(*)`)
-///
-/// TODO: needs to handle the . notation (i.e., quote each side of the dot)
-pub(crate) fn x_name(name: &str) -> String {
-	if name.contains('(') {
-		name.to_string()
-	} else {
-		format!("\"{}\"", name)
-	}
-}
-
 // SQL: "name1", "name2", ...
 pub(crate) fn sql_comma_names(fields: &[Field]) -> String {
 	fields
 		.iter()
-		.map(|Field { name, .. }| x_name(name))
+		.map(|Field { name, .. }| x_column_name(name))
 		.collect::<Vec<String>>()
 		.join(", ")
 }
@@ -214,13 +201,13 @@ pub(crate) fn sql_where_items(where_items: &[WhereItem], idx_start: usize) -> St
 	where_items
 		.iter()
 		.enumerate()
-		.map(|(idx, WhereItem { name, op, .. })| format!("{} {} ${}", x_name(name), op, idx + idx_start))
+		.map(|(idx, WhereItem { name, op, .. })| format!("{} {} ${}", x_column_name(name), op, idx + idx_start))
 		.collect::<Vec<String>>()
 		.join(" AND ")
 }
 
 // SQL: "Id", "userName", ...
 pub(crate) fn sql_returnings(returnings: &[String]) -> String {
-	returnings.iter().map(|r| x_name(r)).collect::<Vec<String>>().join(", ")
+	returnings.iter().map(|r| x_column_name(r)).collect::<Vec<String>>().join(", ")
 }
 // endregion: Builder Utils

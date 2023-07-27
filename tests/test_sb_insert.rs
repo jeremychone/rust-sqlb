@@ -11,20 +11,21 @@ use utils::{init_db, util_fetch_all_todos, TodoPatch};
 async fn sb_insert_ok_simple() -> Result<(), Box<dyn Error>> {
 	let db_pool = init_db().await?;
 
-	// FIXTURES
+	// -- Fixtures
 	let test_title = "test - title 01";
 	let patch_data = TodoPatch {
 		title: Some(test_title.to_string()),
 		desc: None,
 	};
 
-	// DO insert
-	let sb = sqlb::insert().table("todo").data(patch_data.not_none_fields());
-	let sb = sb.returning(&["id", "title"]);
+	// -- Exec
+	// Note: test schema and fully qualified column name.
+	let sb = sqlb::insert().table("public.todo").data(patch_data.not_none_fields());
+	let sb = sb.returning(&["todo.id", "public.todo.title"]);
 	let (_id, title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
 	assert_eq!(test_title, title);
 
-	// CHECK with select all
+	// -- Check
 	let todos = util_fetch_all_todos(&db_pool).await?;
 	assert_eq!(1, todos.len());
 	assert_eq!(test_title, todos[0].title);

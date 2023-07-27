@@ -1,5 +1,6 @@
-use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items, x_name};
+use crate::core::{add_to_where, into_returnings, sql_returnings, sql_where_items};
 use crate::core::{WhereItem, Whereable};
+use crate::utils::{x_column_name, x_table_name};
 use crate::{sqlx_exec, Field, SqlBuilder, SqlxBindable};
 use async_trait::async_trait;
 use sqlx::{Executor, FromRow, Postgres};
@@ -109,7 +110,7 @@ impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 		let mut sql = String::from("UPDATE ");
 
 		if let Some(table) = &self.table {
-			sql.push_str(&format!("\"{}\" ", table));
+			sql.push_str(&x_table_name(table));
 		}
 
 		sql.push_str("SET ");
@@ -125,7 +126,7 @@ impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 			.iter()
 			.enumerate()
 			.map(|(_, f)| {
-				let mut part = format!("{} = ", x_name(&f.name));
+				let mut part = format!("{} = ", x_column_name(&f.name));
 				match f.value.raw() {
 					None => {
 						part.push_str(&format!("${}", binding_idx));

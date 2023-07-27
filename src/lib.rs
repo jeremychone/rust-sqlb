@@ -6,6 +6,7 @@ mod insert;
 mod select;
 pub mod sqlx_exec;
 mod update;
+mod utils;
 mod val;
 
 pub use crate::core::Field;

@@ -1,6 +1,7 @@
-use crate::core::{add_to_where, sql_where_items, x_name, Whereable};
+use crate::core::{add_to_where, sql_where_items, Whereable};
 use crate::core::{OrderItem, WhereItem};
 use crate::sqlx_exec;
+use crate::utils::{x_column_name, x_table_name};
 use crate::{SqlBuilder, SqlxBindable};
 use async_trait::async_trait;
 use sqlx::{Executor, FromRow, Postgres};
@@ -120,7 +121,7 @@ impl<'a> SqlBuilder<'a> for SelectSqlBuilder<'a> {
 		// For now, if no column, will do a "*"
 		match &self.columns {
 			Some(columns) => {
-				let names = columns.iter().map(|c| x_name(c)).collect::<Vec<String>>().join(", ");
+				let names = columns.iter().map(|c| x_column_name(c)).collect::<Vec<String>>().join(", ");
 				sql.push_str(&format!("{} ", names));
 			}
 			None => sql.push_str(&format!("{} ", "*")),
@@ -128,7 +129,8 @@ impl<'a> SqlBuilder<'a> for SelectSqlBuilder<'a> {
 
 		// SQL: FROM table_name
 		if let Some(table) = &self.table {
-			sql.push_str(&format!("FROM {} ", x_name(table)));
+			sql.push_str("FROM ");
+			sql.push_str(&x_table_name(table));
 		}
 
 		// SQL: WHERE w1 < $1, ...

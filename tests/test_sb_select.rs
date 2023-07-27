@@ -14,7 +14,8 @@ async fn sb_select_ok_simple() -> Result<(), Box<dyn Error>> {
 	let fx_ids = util_insert_many_todos(&db_pool, fx_title_prefix, 5).await?;
 
 	// -- Exec
-	let todos: Vec<Todo> = sqlb::select().table("todo").fetch_all(&db_pool).await?;
+	// Note: Check schema as well.
+	let todos: Vec<Todo> = sqlb::select().table("public.todo").fetch_all(&db_pool).await?;
 	let todos: Vec<Todo> = todos.into_iter().filter(|t| t.title.starts_with(fx_title_prefix)).collect();
 
 	// -- Check
@@ -63,7 +64,13 @@ async fn sb_select_ok_limit_only() -> Result<(), Box<dyn Error>> {
 	let fx_ids = util_insert_many_todos(&db_pool, fx_title_prefix, 5).await?;
 
 	// -- Exec
-	let todos: Vec<Todo> = sqlb::select().table("todo").limit(3).fetch_all(&db_pool).await?;
+	// Note: Check schema as well and fully qualified column name.
+	let todos: Vec<Todo> = sqlb::select()
+		.table("public.todo")
+		.columns(&["id", "todo.title", "public.todo.description"])
+		.limit(3)
+		.fetch_all(&db_pool)
+		.await?;
 	let todos: Vec<Todo> = todos.into_iter().filter(|t| t.title.starts_with(fx_title_prefix)).collect();
 
 	// -- Check

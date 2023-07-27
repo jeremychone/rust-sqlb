@@ -1,4 +1,5 @@
 use crate::core::{into_returnings, sql_comma_names, sql_comma_params, sql_returnings};
+use crate::utils::x_table_name;
 use crate::{sqlx_exec, Field, SqlBuilder, SqlxBindable};
 use async_trait::async_trait;
 use sqlx::{Executor, FromRow, Postgres};
@@ -75,7 +76,7 @@ impl<'a> SqlBuilder<'a> for InsertSqlBuilder<'a> {
 		let mut sql = String::from("INSERT INTO ");
 
 		if let Some(table) = &self.table {
-			sql.push_str(&format!("\"{}\" ", table));
+			sql.push_str(&x_table_name(table));
 		}
 
 		// NotDB: empty data is a valid usecase, if the row has a all required field with default or auto gen.
