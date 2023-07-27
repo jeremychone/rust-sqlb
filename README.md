@@ -88,6 +88,12 @@ let row_affected = sb.exec(&db_pool).await?;
 
 `!` breaking change, `+` addition, `-` fix.
 
+- `0.3.2 .. 0.3.7`
+	- `+` Add support for partial and fully qualified table and column names. #8
+	- `+` Add `SqlxBindable` blanket implementation for `Option<T>`. #7
+	- `+` Add `.limit(..)` and `.offset(..)` for `Select`.
+	- `+` Add `.count()` for `Select`.
+	- `+` Add `#[field(skip)]` and `#[field(name="other_name")]` to skip or rename properties.
 - `0.3.1` 
 	- `!` BREAKING CHANGE - `HasFields.fields` has been rename to `HasFields.not_none_fields()`.
 	- `!` BREAKING CHANGE - `HasFields.not_none_fields()` and `HasFields.all_fields()` consume the `self` (to avoid uncessary clone).
