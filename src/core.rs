@@ -148,7 +148,7 @@ pub(crate) fn add_to_where<'a, T: 'a + SqlxBindable + Send + Sync>(
 	op: &'static str,
 	val: T,
 ) {
-	// Note: to_vec so that when it into_iter we do not get the reference of the tuple items
+	// Note: to_vec so that when it into_iter we do not get the reference of the tuple items.
 	let wher = WhereItem {
 		name: name.to_owned(),
 		op,
@@ -158,7 +158,7 @@ pub(crate) fn add_to_where<'a, T: 'a + SqlxBindable + Send + Sync>(
 	and_wheres.push(wher);
 }
 
-// Note: for now does not care about the base
+// Note: for now does not care about the base.
 pub(crate) fn into_returnings(_base: Option<Vec<String>>, names: &[&str]) -> Option<Vec<String>> {
 	Some(names.iter().map(|s| s.to_string()).collect())
 }

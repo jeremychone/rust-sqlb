@@ -18,7 +18,7 @@ pub enum TodoStatus {
 // OR
 bindable!(TodoStatus);
 
-// NOTE: This test is just about passing the compile time
+// NOTE: This test is just about passing the compile time.
 #[serial]
 #[tokio::test]
 async fn test_rules_custom_enum() -> Result<(), Box<dyn Error>> {

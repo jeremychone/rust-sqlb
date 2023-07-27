@@ -1,17 +1,15 @@
-**sqlb** is a simple and expressive SQLBuilder for Rust for [sqlx](https://crates.io/crates/sqlx) focused on PostgreSQL (for now). 
-
+**sqlb** is a simple and expressive SQLBuilder for Rust for [sqlx](https://crates.io/crates/sqlx), focusing on PostgreSQL (for now). 
 
 - **Simple** - Focused on providing an expressive, composable, and reasonably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
-	- **NOT** a database **executor/driver** (Uses [sqlx](https://crates.io/crates/sqlx) as sql executore)
-	- **NOT** an **ORM**, just a sql builder.
+	- **NOT** a database **executor/driver** (Uses [sqlx](https://crates.io/crates/sqlx) as an SQL executor)
+	- **NOT** an **ORM**, just an SQL builder.
 	- **NOT** a full replacement for [sqlx](https://crates.io/crates/sqlx). Dropping into sqlx when sqlb is too limiting is a valid pattern.
 - **Expressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
 - **Focused** 
 	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
 	- **PostgreSQL** - First database support will be Postgres (via sqlx). Additional database support may be added based on interest and pull requests.
-- `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly for high bach commands or more advanced usecases is an encouraged approach. 
+- `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly for high batch commands or more advanced use-cases is an encouraged approach. 
 - **Prepared Statement ONLY!**	
-
 
 > NOTE 1: `sqlb 0.3.x` is designed to work with `sqlx 0.6.x`. Currently, I'm working on `sqlb 0.4.x` for `sqlx 0.7.x`. However, as of `sqlx 0.7.1`, there's an issue affecting some application unit tests where I encounter `Sqlx(PoolTimedOut)` whenever `max_connections` is set to more than one. I'm currently in the process of isolating and investigating this issue. *(Note from July 26, 2023)* See [similar sqlx issue #2567](https://github.com/launchbadge/sqlx/issues/2567#issuecomment-1652209136).
 
@@ -19,7 +17,8 @@
 
 > NOTE 3: sqlb has the feature `runtime-tokio-rustls` enabled by the sqlx crate. Do not enable a conflicting runtime feature when adding sqlx to your project.
 
-> NOTE 4: During the `0.y.z` period API changes will result in `.y` increments. 
+> NOTE 4: During the `0.y.z` period, API changes will result in `.y` increments.
+
 
 Goals for first **0.y.z** releases: 
 
