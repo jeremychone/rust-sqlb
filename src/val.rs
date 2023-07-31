@@ -20,23 +20,23 @@ pub trait SqlxBindable: std::fmt::Debug {
 
 #[macro_export]
 macro_rules! bindable {
-	($($t:ident),*) => {
-		$(impl $crate::SqlxBindable for $t {
-			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-				let query = query.bind(self.clone());
-				query
-			}
-		}
+    ($($t:ty),*) => {
+        $(impl $crate::SqlxBindable for $t {
+            fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
+                let query = query.bind(self.clone());
+                query
+            }
+        }
 
-		impl $crate::SqlxBindable for &$t {
-			fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-				let query = query.bind(<$t>::clone(self));
-				query
-			}
-		}
+        impl $crate::SqlxBindable for &$t {
+            fn bind_query<'q>(&self, query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
+                let query = query.bind(<$t>::clone(self));
+                query
+            }
+        }
 
-		)*
-	};
+        )*
+    };
 }
 
 #[macro_export]
@@ -87,6 +87,16 @@ bindable!(i8, i16, i32, i64, f32, f64);
 bindable!(Uuid, OffsetDateTime);
 
 // region:    --- Raw Value
+
+// region: 		--- chrono support
+#[cfg(feature = "chrono-support")]
+mod chrono_support {
+	use chrono::{NaiveDateTime, NaiveDate, NaiveTime, DateTime, Utc};
+
+	bindable!(NaiveDateTime, NaiveDate, NaiveTime, DateTime<Utc>);
+}
+// endregion: --- chrono support
+
 
 #[derive(Debug)]
 pub struct Raw(pub &'static str);
