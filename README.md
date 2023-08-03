@@ -11,7 +11,7 @@
 - `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly for high batch commands or more advanced use-cases is an encouraged approach. 
 - **Prepared Statement ONLY!**	
 
-> NOTE 1: `sqlb 0.3.x` is designed to work with `sqlx 0.6.x`. Currently, I'm working on `sqlb 0.4.x` for `sqlx 0.7.x`. However, as of `sqlx 0.7.1`, there's an issue affecting some application unit tests where I encounter `Sqlx(PoolTimedOut)` whenever `max_connections` is set to more than one. I'm currently in the process of isolating and investigating this issue. *(Note from July 26, 2023)* See [similar sqlx issue #2567](https://github.com/launchbadge/sqlx/issues/2567#issuecomment-1652209136).
+> NOTE 1: `sqlb 0.3.x` is designed to work with `sqlx 0.6.x`. <br />Currently, I'm working on `sqlb 0.4.x` for `sqlx 0.7.x`. However, as of `sqlx 0.7.1`, there's an issue affecting some application unit tests where I encounter `Sqlx(PoolTimedOut)` whenever `max_connections` is set to more than one. I'm currently in the process of isolating and investigating this issue. *(Note from July 26, 2023)* See [similar sqlx issue #2567](https://github.com/launchbadge/sqlx/issues/2567#issuecomment-1652209136).
 
 > NOTE 2: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
 
@@ -19,13 +19,12 @@
 
 > NOTE 4: During the `0.y.z` period, API changes will result in `.y` increments.
 
-
 Goals for first **0.y.z** releases: 
 
 - **sqlx** - Only plan to be on top of [sqlx](https://crates.io/crates/sqlx).
 - **PostgreSQL** - Focus only on PostgreSQL.
 - **Macros** - Adding macros to keep things DRY (but they are optional. All can be implemented via trait objects)
-- **limitations** - Currently, to make types work with `sqlb` they must implement`sqlb::SqlxBindable` trait. The aim is to implement `SqlxBindable` for all `sqlx` types and allowing app code to implement `SqlxBindable` for their specific types. If there are any external types that should be supported but are not currently, please feel free to log a ticket.
+- **Limitations** - Currently, to make types work with `sqlb` they must implement`sqlb::SqlxBindable` trait. The aim is to implement `SqlxBindable` for all `sqlx` types and allowing app code to implement `SqlxBindable` for their specific types. If there are any external types that should be supported but are not currently, please feel free to log a ticket. A good pattern for this type is for `sqlb` to add type support by features (e.g., see `chrono_support` sqlb feature).
 
 
 ## Early API Example (just conceptual for now)
@@ -84,10 +83,22 @@ let row_affected = sb.exec(&db_pool).await?;
 // will not update .title because of the use of `.not_none_fields()`. 
 ```
 
-## Latest Major Changes
+## Thanks
+
+- Thanks to [KaiserBh](https://github.com/KaiserBh) for the `bindable!` generic type and `chrono` support.
+- Thanks to [eboody](https://github.com/eboody) for the potential sqlx conflict (see [PR 3](https://github.com/jeremychone/rust-sqlb/pull/3)).
+
+Open source is awesome! Feel free to enter ticket, ask questions, or do PR (concise and focused).
+
+Happy coding!
+
+## Changelog
 
 `!` breaking change, `+` addition, `-` fix.
 
+- `0.3.8` - 2023-08-03
+	- `+` generic types for `bindable!` macro. [PR from KaiserBh](https://github.com/jeremychone/rust-sqlb/pull/10)
+	- `+` `chrono` binding under the feature `chrono_support`. [PR from KaiserBh](https://github.com/jeremychone/rust-sqlb/pull/10)
 - `0.3.2 .. 0.3.7`
 	- `+` Add support for partial and fully qualified table and column names. #8
 	- `+` Add `SqlxBindable` blanket implementation for `Option<T>`. #7
