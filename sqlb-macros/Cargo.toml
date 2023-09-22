@@ -1,8 +1,8 @@
 [package]
 name = "sqlb-macros"
-version = "0.3.2"
+version = "0.4.0-WIP"
 authors = ["jeremy.chone@gmail.com"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/jeremychone/rust-sqlb"
 repository = "https://github.com/jeremychone/rust-sqlb"
 description = "Macros for sqlb. Not intended to be used directly."
