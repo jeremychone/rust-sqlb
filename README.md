@@ -2,7 +2,7 @@
 
 **UPDATE 2023-11-21:** `sqlb 0.4.x` now uses `sqlx 0.7.x`
 
-**NOTE 2023-11-31:** I am currently examining [sea-query](https://crates.io/crates/sea-query) to investigate whether there is a way for these two libraries (`sqlb` and `sea-query`) to complement each other, as they share similar "SQL builder" approaches. Some initial integration might come in `sqlb 0.5.x`. Feel free to share your perspective on our discord: https://discord.gg/W2besKCzjx
+**NOTE 2023-11-31:** I am currently exploring integration synergy opportunities with [sea-query](https://crates.io/crates/sea-query), as they share similar "SQL builder" principles. Some initial integration might appear in `sqlb 0.5.x`. Feel free to share your perspective on our discord: https://discord.gg/W2besKCzjx
 
 
 **Key Concepts**
@@ -100,8 +100,10 @@ Happy coding!
 
 ## Changelog
 
-`!` breaking change, `+` addition, `-` fix.
+`!` breaking change, `^` enhancement, `+` addition, `-` fix.
 
+- `0.4.0` - 2023-11-21
+	- `^` Updated to `sqlx 0.7`
 - `0.3.8` - 2023-08-03
 	- `+` generic types for `bindable!` macro. [PR from KaiserBh](https://github.com/jeremychone/rust-sqlb/pull/10)
 	- `+` `chrono` binding under the feature `chrono_support`. [PR from KaiserBh](https://github.com/jeremychone/rust-sqlb/pull/10)
