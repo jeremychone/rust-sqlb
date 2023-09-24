@@ -1,0 +1,16 @@
+[package]
+name = "example-sqlx-postgres"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+# -- Query builder
+sea-query = "0.30"
+sqlb = { path = "../../" }
+# -- sqlx
+sea-query-binder = { version = "0.5", features = ["sqlx-postgres", "with-time", "with-uuid"] }
+sqlx = {version = "0.7", features = [ "runtime-tokio", "postgres", "time", "uuid" ]}
+# -- For dev
+anyhow = "1"
+

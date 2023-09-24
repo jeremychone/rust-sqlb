@@ -1,112 +1,76 @@
-**sqlb** is a simple and expressive SQLBuilder for Rust for [sqlx](https://crates.io/crates/sqlx), focusing on PostgreSQL (for now). 
+# IMPORTANT - sqlb 0.5.x has a TOTALLY NEW STRATEGY and IMPLEMENTATION
 
-**UPDATE 2023-11-21:** `sqlb 0.4.x` now uses `sqlx 0.7.x`
+- It is now not built on top of `sqlx` anymore (no sqlx dependencies)
+- But on top of [sea-query](https://crates.io/crates/sea-query)
+- So, instead of providing a `sea-query` alternative solution, it now adds on top of `sea-query`
 
-**NOTE 2023-11-31:** I am currently exploring integration synergy opportunities with [sea-query](https://crates.io/crates/sea-query), as they share similar "SQL builder" principles. Some initial integration might appear in `sqlb 0.5.x`. Feel free to share your perspective on our discord: https://discord.gg/W2besKCzjx
+The result is a bit more verbose, but it takes full advantage of `sea-query`:
 
+- Mature and expressive SQL builder API, with joins and more.
+- Multi-driver support (`postgres/tokio-postgres`, `rusqlite`, `sqlx/*` `diesel/*`)
 
-**Key Concepts**
-- **Simple** - Focused on providing an expressive, composable, and reasonably typed scheme to build and execute (via sqlx for now) parameterized SQL statements. The goal is NOT to abstract SQL but to make it expressive and composable using Rust programmatic constructs.
-	- **NOT** a database **executor/driver** (Uses [sqlx](https://crates.io/crates/sqlx) as an SQL executor)
-	- **NOT** an **ORM**, just an SQL builder.
-	- **NOT** a full replacement for [sqlx](https://crates.io/crates/sqlx). Dropping into sqlx when sqlb is too limiting is a valid pattern.
-- **Expressive** - From arbitrary typed data in and out (list of names/values) to struct and mapping rules. 
-- **Focused** 
-	- **[sqlx](https://crates.io/crates/sqlx)** - The first "database executor" provided will be [sqlx](https://github.com/launchbadge/sqlx). 
-	- **PostgreSQL** - First database support will be Postgres (via sqlx). Additional database support may be added based on interest and pull requests.
-- `sqlb` goal is to have a highly ergonomic API at a minimum performance cost. However, using sqlx directly for high batch commands or more advanced use-cases is an encouraged approach. 
-- **Prepared Statement ONLY!**	
+So, `sqlb` just adds the missing mile:
 
-**Additional Notes**
+- `HasFields` trait on struct, to provide a list of columns, and columns/values for struct instance.
+- `#[derive(Fields)]` proc derive macro to implement `HasFields`
+- `fields.zip()` and `fields.unzip()` to conveniently transform a field list to the columns/values expected by `sea-query` query builders.
 
-> NOTE 1: SQL Builders are typically not used directly by application business logic, but rather to be wrapped in some Application Model Access Layer (e.g., DAOs or MCs - Model Controller - patterns). Even when using ORMs, it is often a good code design to wrap those access via some model access layers. 
+And more to come. 
 
-> NOTE 2: sqlb has the feature `runtime-tokio-rustls` enabled by the sqlx crate. Do not enable a conflicting runtime feature when adding sqlx to your project.
+See [Rust web-app production code blueprint on rust10x.com](https://rust10x.com/web-app) for an example of how this is used in a production code envornement
 
-> NOTE 3: During the `0.y.z` period, API changes will result in `.y` increments.
+## Quick Example
 
-Goals for first **0.y.z** releases: 
-
-- **sqlx** - Only plan to be on top of [sqlx](https://crates.io/crates/sqlx).
-- **PostgreSQL** - Focus only on PostgreSQL.
-- **Macros** - Adding macros to keep things DRY (but they are optional. All can be implemented via trait objects)
-- **Limitations** - Currently, to make types work with `sqlb` they must implement`sqlb::SqlxBindable` trait. The aim is to implement `SqlxBindable` for all `sqlx` types and allowing app code to implement `SqlxBindable` for their specific types. If there are any external types that should be supported but are not currently, please feel free to log a ticket. A good pattern for this type is for `sqlb` to add type support by features (e.g., see `chrono_support` sqlb feature).
-
-
-## Early API Example (just conceptual for now)
+- When annotating a struct with `#[Derive(sqlb::Fields)]`
 
 ```rust
-// `sqlx::FromRow` allows to do sqlx_exec::fetch_as...
-// `sqlb::Fields` allows to have:
-//   - `toto.fields()` (name, value)[] (only direct or NOT Not values)
-//   - `Todo::field_names()` here would return `["id", "title"]`
-#[derive(sqlx::FromRow, sqlb::Fields)] 
-pub struct Todo {
-    id: i64,
-
-    title: String,
-	#[field(name="description")]
-	desc: Option<String>,
-
-	#[field(skip)]
-	someting_else: String,
-}
-
-#[derive(sqlb::Fields)] 
-pub struct TodoForCreate {
+// sqlb::Fields 
+#[derive(sqlb::Fields, Debug, Default)]
+struct TodoForCreate {
 	title: String,
-	desc: Option<String>,
-
-	#[field(skip)]
-	someting_else: String,	
+	done: Option<bool>, // if None, not set, so db default (false)
+	#[field(name = "description")]
+	desc: Option<String>, // if None, not set, so db default (false)
 }
-
-#[derive(sqlb::Fields)] 
-pub struct TodoForUpdate {
-	title: Option<String>,
-	desc: Option<String>,
-}
-
-// -- Get the field names
-let field_names = Todo::field_names();
-// ["id", "title", "description"]
-
-// -- Create new row
-let todo_c = TodoForCreate { title: "title 01".to_string(), desc: "desc 01".to_string() };
-// will update all fields specified in TodoForCreate
-let sb = sqlb::insert().table("todo").data(todo_c.all_fields());
-let sb = sb.returning(&["id", "title"]);
-let (_id, title) = sb.fetch_one::<_, (i64, String)>(&db_pool).await?;
-
-// -- Select 
-let sb = sqlb::select().table("todo").columns(Todo::field_names()).order_by("!id");
-let todos: Vec<Todo> = sb.fetch_as_all(&db_pool).await?;
-
-// -- Update
-let todo_u - TodoForUpdate { desc: "Updated desc 01".to_string()};
-let sb = sqlb::update().table("todo").data(todo_u.not_none_fields()).and_where_eq("id", 123);
-let row_affected = sb.exec(&db_pool).await?;
-// will not update .title because of the use of `.not_none_fields()`. 
 ```
 
-## Thanks
+- The following functions/methods are available:
 
-- Thanks to [KaiserBh](https://github.com/KaiserBh) for the `bindable!` generic type and `chrono` support.
-- Thanks to [eboody](https://github.com/eboody) for the potential sqlx conflict (see [PR 3](https://github.com/jeremychone/rust-sqlb/pull/3)).
+| Function/Method                | Returns                                                  |
+|--------------------------------|----------------------------------------------------------|
+| `TodoForCreate::field_names()` | `["title", "done", "description"]`                       |
+| `TodoForCreate::field_idens()` | `Vec<sea_query::DynIden>` (for sea-query select)         |
+| `todo_object.all_fields()`     | `Fields` object allowing the following                   |
+| `fields.zip()`                 | `(Vec<DynIden>, Vec<SimpleExpr>)` for sea-query insert   |
+| `fields.unzip()`               | `Iterator of (DynIden, SimpleExpr)` for sea-query update |
+| `fields.push(Field::new(...))` | To add dynamic name/value to be inserted/updated         |
 
-Open source is awesome! Feel free to enter ticket, ask questions, or do PR (concise and focused).
 
-Happy coding!
+
+## Full examples
+
+See [alpha_v050/examples](https://github.com/jeremychone/rust-sqlb/tree/alpha_v050/examples)
+
+```sh
+cargo run -p example-tokio-postgres
+cargo run -p example-sqlx-postgres
+```
+
+### Notes for other databases
+
+> Note: Currently, `sqlb` is completely DB-unaware, meaning that the examples provided above could be adapted to MySQL or SQLite by simply changing the DB Driver and Sea-Query binding dependency. For reference, see [sea-query examples](https://github.com/SeaQL/sea-query/tree/master/examples).
 
 ## Changelog
 
 `!` breaking change, `^` enhancement, `+` addition, `-` fix.
 
+- `0.5.0-alpha.x` FULL REWRITE AND DIFFERENT STRATEGY - SEA-QUERY based now
 - `0.4.0` - 2023-11-21
 	- `^` Updated to `sqlx 0.7`
-- `0.3.8` - 2023-08-03
+- `0.3.3 .. 0.3.8` - 2023-08-03
 	- `+` generic types for `bindable!` macro. [PR from KaiserBh](https://github.com/jeremychone/rust-sqlb/pull/10)
 	- `+` `chrono` binding under the feature `chrono_support`. [PR from KaiserBh](https://github.com/jeremychone/rust-sqlb/pull/10)
+	- Thanks to [eboody](https://github.com/eboody) for the potential sqlx conflict (see [PR 3](https://github.com/jeremychone/rust-sqlb/pull/3)).
 - `0.3.2 .. 0.3.7`
 	- `+` Add support for partial and fully qualified table and column names. #8
 	- `+` Add `SqlxBindable` blanket implementation for `Option<T>`. #7

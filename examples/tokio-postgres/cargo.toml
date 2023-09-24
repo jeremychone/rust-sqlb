@@ -1,0 +1,20 @@
+[package]
+name = "example-tokio-postgres"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+
+# -- Query builder
+sea-query = "0.30"
+sqlb = { path = "../../" }
+
+# -- tokio-postgres
+tokio-postgres = "0.7"
+deadpool-postgres = "0.10"
+sea-query-postgres = {version = "0"}
+
+# -- For dev
+anyhow = "1"
+
