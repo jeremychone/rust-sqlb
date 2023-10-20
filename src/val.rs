@@ -97,6 +97,15 @@ mod chrono_support {
 }
 // endregion: --- chrono support
 
+// region: 		--- json support
+#[cfg(feature = "json")]
+mod json {
+    use serde_json::Value;
+
+	bindable!(Value);
+}
+// endregion: --- json support
+
 
 #[derive(Debug)]
 pub struct Raw(pub &'static str);
