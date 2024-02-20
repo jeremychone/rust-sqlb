@@ -106,6 +106,14 @@ mod json {
 }
 // endregion: --- json support
 
+// region: 		--- decimal support
+#[cfg(feature = "decimal")]
+mod decimal {
+    use rust_decimal::Decimal;
+
+	bindable!(Decimal);
+}
+// endregion: --- decimal support
 
 #[derive(Debug)]
 pub struct Raw(pub &'static str);
