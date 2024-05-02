@@ -97,6 +97,23 @@ mod chrono_support {
 }
 // endregion: --- chrono support
 
+// region: 		--- json support
+#[cfg(feature = "json")]
+mod json {
+    use serde_json::Value;
+
+	bindable!(Value);
+}
+// endregion: --- json support
+
+// region: 		--- decimal support
+#[cfg(feature = "decimal")]
+mod decimal {
+    use rust_decimal::Decimal;
+
+	bindable!(Decimal);
+}
+// endregion: --- decimal support
 
 #[derive(Debug)]
 pub struct Raw(pub &'static str);
