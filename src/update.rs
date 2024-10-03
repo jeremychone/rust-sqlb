@@ -124,8 +124,7 @@ impl<'a> SqlBuilder<'a> for UpdateSqlBuilder<'a> {
 		let fields = &self.data;
 		let sql_set = fields
 			.iter()
-			.enumerate()
-			.map(|(_, f)| {
+			.map(|f| {
 				let mut part = format!("{} = ", x_column_name(&f.name));
 				match f.value.raw() {
 					None => {

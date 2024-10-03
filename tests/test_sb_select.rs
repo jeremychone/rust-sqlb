@@ -44,7 +44,7 @@ async fn sb_select_ok_limit_offset() -> Result<(), Box<dyn Error>> {
 
 	// -- Check
 	assert_eq!(todos.len(), 3, "number of todos");
-	let todo_02 = todos.get(0).unwrap();
+	let todo_02 = todos.first().unwrap();
 	assert_eq!(todo_02.title, "sb_select_ok_limit_offset-02");
 
 	// -- Clean

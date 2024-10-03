@@ -77,6 +77,12 @@ pub fn derives_fields(input: TokenStream) -> TokenStream {
 				#props_all_names,
 				)*]
 			}
+
+			fn field_names_prefixed(prefix: &str) -> Vec<String> {
+				vec![#(
+					format!("{}{}", prefix, #props_all_names),
+				)*]
+			}
 		}
 	};
 

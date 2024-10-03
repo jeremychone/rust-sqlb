@@ -1,6 +1,6 @@
 ////////////////////////////////////
 // sqlx-exec - module for the sqlx query executor
-////
+////////////////////////////////////
 
 use crate::SqlBuilder;
 use sqlx::{postgres::PgArguments, Execute, Executor, FromRow, Postgres};
@@ -22,7 +22,13 @@ where
 	}
 
 	// create the QueryAs
-	let query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, query.take_arguments().unwrap());
+	let arguments = query.take_arguments().unwrap();
+	let query;
+	if let Some(arguments) = arguments {
+		query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, arguments);
+	} else {
+		query = sqlx::query_as::<sqlx::Postgres, D>(&sql);
+	}
 
 	// exec and return
 	let r = query.fetch_one(db_pool).await?;
@@ -46,7 +52,13 @@ where
 	}
 
 	// create the QueryAs
-	let query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, query.take_arguments().unwrap());
+		let arguments = query.take_arguments().unwrap();
+	let query;
+	if let Some(arguments) = arguments {
+		query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, arguments);
+	} else {
+		query = sqlx::query_as::<sqlx::Postgres, D>(&sql);
+	}
 
 	// exec and return
 	let r = query.fetch_optional(db_pool).await?;
@@ -70,7 +82,13 @@ where
 	}
 
 	// create the QueryAs
-	let query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, query.take_arguments().unwrap());
+	let arguments = query.take_arguments().unwrap();
+	let query;
+	if let Some(arguments) = arguments {
+  	query = sqlx::query_as_with::<sqlx::Postgres, D, PgArguments>(&sql, arguments);
+	} else {
+		query = sqlx::query_as::<sqlx::Postgres, D>(&sql);
+	}
 
 	// exec and return
 	let r = query.fetch_all(db_pool).await?;

@@ -8,14 +8,14 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 pub trait SqlxBindable: std::fmt::Debug {
-	fn bind_query<'q>(
-		&'q self,
-		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
-	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>;
+    fn bind_query<'q>(
+        &'q self,
+        query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>;
 
-	fn raw(&self) -> Option<&str> {
-		None
-	}
+    fn raw(&self) -> Option<&str> {
+        None
+    }
 }
 
 #[macro_export]
@@ -65,17 +65,17 @@ bindable_to_string!(String, str);
 
 impl<T> SqlxBindable for Option<T>
 where
-	T: SqlxBindable + Clone + Send,
-	T: for<'r> sqlx::Encode<'r, sqlx::Postgres>,
-	T: sqlx::Type<sqlx::Postgres>,
+    T: SqlxBindable + Clone + Send,
+    T: for<'r> sqlx::Encode<'r, sqlx::Postgres>,
+    T: sqlx::Type<sqlx::Postgres>,
 {
-	fn bind_query<'q>(
-		&'q self,
-		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
-	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-		let query = query.bind(self.clone());
-		query
-	}
+    fn bind_query<'q>(
+        &'q self,
+        query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
+        let query = query.bind(self.clone());
+        query
+    }
 }
 
 // Bind the boolean
@@ -86,14 +86,16 @@ bindable!(i8, i16, i32, i64, f32, f64);
 
 bindable!(Uuid, OffsetDateTime);
 
+bindable!(Vec<String>, Vec<i64>);
+
 // region:    --- Raw Value
 
 // region: 		--- chrono support
 #[cfg(feature = "chrono-support")]
 mod chrono_support {
-	use chrono::{NaiveDateTime, NaiveDate, NaiveTime, DateTime, Utc};
+    use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
-	bindable!(NaiveDateTime, NaiveDate, NaiveTime, DateTime<Utc>);
+    bindable!(NaiveDateTime, NaiveDate, NaiveTime, DateTime<Utc>);
 }
 // endregion: --- chrono support
 
@@ -102,7 +104,7 @@ mod chrono_support {
 mod json {
     use serde_json::Value;
 
-	bindable!(Value);
+    bindable!(Value);
 }
 // endregion: --- json support
 
@@ -111,7 +113,7 @@ mod json {
 mod decimal {
     use rust_decimal::Decimal;
 
-	bindable!(Decimal);
+    bindable!(Decimal);
 }
 // endregion: --- decimal support
 
@@ -119,40 +121,40 @@ mod decimal {
 pub struct Raw(pub &'static str);
 
 impl SqlxBindable for Raw {
-	// just return the query given, since no binding should be taken place
-	fn bind_query<'q>(
-		&self,
-		query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
-	) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
-		query
-	}
+    // just return the query given, since no binding should be taken place
+    fn bind_query<'q>(
+        &self,
+        query: sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> sqlx::query::Query<'q, sqlx::Postgres, sqlx::postgres::PgArguments> {
+        query
+    }
 
-	fn raw(&self) -> Option<&str> {
-		Some(self.0)
-	}
+    fn raw(&self) -> Option<&str> {
+        Some(self.0)
+    }
 }
 // endregion: --- Raw Value
 
 #[cfg(test)]
 mod tests {
-	use crate::Field;
+    use crate::Field;
 
-	#[test]
-	fn field_from_str() {
-		let field = Field::from(("name1", "v2"));
-		assert_eq!("name1", field.name);
+    #[test]
+    fn field_from_str() {
+        let field = Field::from(("name1", "v2"));
+        assert_eq!("name1", field.name);
 
-		let field: Field = ("name1", "v2").into();
-		assert_eq!("name1", field.name);
-	}
+        let field: Field = ("name1", "v2").into();
+        assert_eq!("name1", field.name);
+    }
 
-	#[test]
-	fn field_from_string() {
-		let field = Field::from(("name1", "v1"));
-		assert_eq!("name1", field.name);
+    #[test]
+    fn field_from_string() {
+        let field = Field::from(("name1", "v1"));
+        assert_eq!("name1", field.name);
 
-		let v2 = &"v2".to_string();
-		let field: Field = ("name2", v2).into();
-		assert_eq!("name2", field.name);
-	}
+        let v2 = &"v2".to_string();
+        let field: Field = ("name2", v2).into();
+        assert_eq!("name2", field.name);
+    }
 }

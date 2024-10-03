@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::env;
+
 use anyhow::Result;
 use sqlb::{Field, HasFields};
 use sqlb_macros::Fields;
@@ -105,9 +107,11 @@ pub async fn util_fetch_todo(db_pool: &Pool<Postgres>, id: i64) -> Result<Todo> 
 
 // region:    Test Utils
 pub async fn init_db() -> Result<Pool<Postgres>, sqlx::Error> {
+	let database_url: String = env::var("DATABASE_URL").ok()
+		.unwrap_or("postgres://postgres:welcome@localhost/postgres".to_string());
 	let pool = PgPoolOptions::new()
 		.max_connections(5)
-		.connect("postgres://postgres:welcome@localhost/postgres")
+		.connect(&database_url)
 		.await?;
 
 	sqlx::query("DROP TABLE IF EXISTS todo").execute(&pool).await?;
